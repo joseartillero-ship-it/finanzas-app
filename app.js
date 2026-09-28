@@ -1,370 +1,242 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// Configuración de Supabase
+const SUPABASE_URL = 'https://tnbkrtczfthowhbush.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuYmtydGN6ZnRob3doYnVzaCIsInJvbGUiOiJhb24iLCJpYXQiOjE3NDEzMjQ5NTMsImV4cCI6MjA1NjkwMDk1M30.b3B1Xw6k1T_j4WvJ3WbV7Xb1w4a'
 
-const supabaseUrl = 'https://eqkkrcjdzdlhzwdnunoh.supabase.co'
-const supabaseKey = 'sb_publishable_0pfomhywrBLPzaDVJ927HQ_TGTqRNfD'
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
-// --- AUTENTICACIÓN ---
-const emailInput = document.getElementById('email')
-const passwordInput = document.getElementById('password')
-const btnSignup = document.getElementById('btn-signup')
-const btnLogin = document.getElementById('btn-login')
-const btnLogout = document.getElementById('btn-logout')
-const authStatus = document.getElementById('auth-status')
+// Actualizar barra de usuario y botones de login
+async function actualizarUI() {
+  const { data: { session } } = await supabase.auth.getSession()
+  const userEmail = document.getElementById('user-email')
+  const authForms = document.getElementById('auth-forms')
+  const btnLogout = document.getElementById('btn-logout')
 
-if (btnSignup) {
-  btnSignup.addEventListener('click', async () => {
-    const { data, error } = await supabase.auth.signUp({
-      email: emailInput.value,
-      password: passwordInput.value
-    })
-    if (authStatus) authStatus.textContent = error ? error.message : 'Registrado. Revisa tu email si hace falta confirmarlo.'
-  })
-}
-
-if (btnLogin) {
-  btnLogin.addEventListener('click', async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: emailInput.value,
-      password: passwordInput.value
-    })
-    if (authStatus) authStatus.textContent = error ? error.message : 'Sesión iniciada'
-  })
-}
-
-if (btnLogout) {
-  btnLogout.addEventListener('click', async () => {
-    await supabase.auth.signOut()
-    actualizarUI()
-  })
-}
-
-
-function actualizarUI() {
-  supabase.auth.getSession().then(({ data }) => {
-    const logueado = !!data.session
-    const btnLogout = document.getElementById('btn-logout')
-    const btnLogin = document.getElementById('btn-login')
-    const btnSignup = document.getElementById('btn-signup')
-
-    if (btnLogout) btnLogout.style.display = logueado ? 'inline' : 'none'
-    if (btnLogin) btnLogin.style.display = logueado ? 'none' : 'inline'
-    if (btnSignup) btnSignup.style.display = logueado ? 'none' : 'inline'
-  })
-}
-
-actualizarUI()
-let idEditando = null
-const form = document.getElementById('form-transaccion')
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  const datosTransaccion = {
-  user_id: user.id,
-  monto: document.getElementById('monto').value,
-  tipo: document.getElementById('tipo').value,
-  categoria_id: document.getElementById('categoria').value || null,
-  descripcion: document.getElementById('descripcion').value,
-  fecha: document.getElementById('fecha').value || undefined
-}
-
-  let error
-
-  if (idEditando) {
-    const resultado = await supabase
-      .from('transacciones')
-      .update(datosTransaccion)
-      .eq('id', idEditando)
-    error = resultado.error
+  if (session) {
+    if (userEmail) userEmail.textContent = `Sesión activa: ${session.user.email}`
+    if (authForms) authForms.classList.add('hidden')
+    if (btnLogout) btnLogout.classList.remove('hidden')
   } else {
-    const resultado = await supabase
-      .from('transacciones')
-      .insert(datosTransaccion)
-    error = resultado.error
+    if (userEmail) userEmail.textContent = 'Inicia sesión o regístrate para guardar tus datos'
+    if (authForms) authForms.classList.remove('hidden')
+    if (btnLogout) btnLogout.classList.add('hidden')
   }
+}
 
-  if (error) {
-    console.error('Error al guardar:', error)
-  } else {
-    form.reset()
-    idEditando = null
-    cargarTransacciones()
+// Eventos Login / Registro / Logout
+document.getElementById('btn-login')?.addEventListener('click', async () => {
+  const email = document.getElementById('email').value
+  const password = document.getElementById('password').value
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) alert('Error al iniciar sesión: ' + error.message)
+  else {
+    actualizarUI()
+    cargarCategorias()
+    cargarTransaccionesBD()
+    actualizarTotalesBD()
   }
 })
 
+document.getElementById('btn-signup')?.addEventListener('click', async () => {
+  const email = document.getElementById('email').value
+  const password = document.getElementById('password').value
+  const { error } = await supabase.auth.signUp({ email, password })
+  if (error) alert('Error al registrarse: ' + error.message)
+  else alert('¡Registro completado! Revisa tu email o inicia sesión.')
+})
 
-// ==========================================
-// 1. FUNCIÓN PARA MOSTRAR LA LISTA
-// ==========================================
-async function cargarTransacciones() {
+document.getElementById('btn-logout')?.addEventListener('click', async () => {
+  await supabase.auth.signOut()
+  actualizarUI()
+  cargarCategorias()
+  cargarTransaccionesBD()
+  actualizarTotalesBD()
+})
+
+// Cargar Categorías
+async function cargarCategorias() {
+  const { data, error } = await supabase
+    .from('categorias')
+    .select('*')
+    .order('nombre')
+
+  if (error) return console.error('Error cargando categorías:', error)
+
+  const lista = document.getElementById('lista-categorias')
+  const selectCategoria = document.getElementById('categoria-transaccion')
+
+  if (lista) lista.innerHTML = ''
+  if (selectCategoria) selectCategoria.innerHTML = '<option value="">Sin categoría</option>'
+
+  data?.forEach((cat) => {
+    // Añadir a lista con botón eliminar "X"
+    if (lista) {
+      const li = document.createElement('li')
+      li.className = 'flex justify-between items-center p-2 bg-gray-50 rounded border text-sm'
+      li.innerHTML = `
+        <span class="text-gray-700">${cat.nombre}</span>
+        <button onclick="eliminarCategoria('${cat.id}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-0.5 rounded text-xs hover:bg-red-50">✕</button>
+      `
+      lista.appendChild(li)
+    }
+
+    // Añadir al select del formulario
+    if (selectCategoria) {
+      const option = document.createElement('option')
+      option.value = cat.id
+      option.textContent = cat.nombre
+      selectCategoria.appendChild(option)
+    }
+  })
+}
+
+// Eliminar Categoría
+window.eliminarCategoria = async (id) => {
+  const { error } = await supabase.from('categorias').delete().eq('id', id)
+  if (error) {
+    alert('No se pudo borrar la categoría (comprueba si está en uso): ' + error.message)
+  } else {
+    cargarCategorias()
+  }
+}
+
+// Añadir Categoría
+document.getElementById('form-categoria')?.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const input = document.getElementById('nombre-categoria')
+  const nombre = input.value.trim()
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { error } = await supabase.from('categorias').insert({
+    nombre,
+    user_id: user ? user.id : null
+  })
+
+  if (error) console.error('Error insertando categoría:', error)
+  else {
+    input.value = ''
+    cargarCategorias()
+  }
+})
+
+// Cargar Transacciones
+async function cargarTransaccionesBD() {
   const { data, error } = await supabase
     .from('transacciones')
     .select('*, categorias(nombre)')
-    .order('fecha', { ascending: false })
+    .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error al cargar transacciones:', error)
-    return
-  }
+  if (error) return console.error('Error cargando transacciones:', error)
 
   const lista = document.getElementById('lista-transacciones')
   if (!lista) return
   lista.innerHTML = ''
 
-  data.forEach(t => {
-    const li = document.createElement('li')
-    const nombreCategoria = t.categorias ? ` [${t.categorias.nombre}]` : ''
-    
-    li.textContent = `${t.fecha} — ${t.tipo}: ${t.monto}€ (${t.descripcion || 'sin descripción'})${nombreCategoria} `
-
-    const btnEditar = document.createElement('button')
-    btnEditar.textContent = 'Editar'
-    btnEditar.onclick = () => cargarEnFormulario(t)
-
-    const btnBorrar = document.createElement('button')
-    btnBorrar.textContent = 'Borrar'
-    btnBorrar.onclick = () => borrarTransaccion(t.id)
-
-    li.appendChild(btnEditar)
-    li.appendChild(btnBorrar)
-    lista.appendChild(li)
-  })
-
-  // Al terminar de pintar la lista, llamamos al cálculo del resumen
-  calcularResumen()
-} // <--- AQUÍ SE CIERRA LA FUNCIÓN cargarTransacciones
-// ==========================================
-function cargarEnFormulario(t) {
-  idEditando = t.id
-
-  document.getElementById('monto').value = t.monto
-  document.getElementById('tipo').value = t.tipo
-  document.getElementById('categoria').value = t.categoria_id || ''
-  document.getElementById('descripcion').value = t.descripcion || ''
-  document.getElementById('fecha').value = t.fecha || ''
-
-  document.querySelector('#form-transaccion button[type="submit"]').textContent = 'Actualizar'
-}
-
-
-
-// ==========================================
-// 2. FUNCIÓN PARA MOSTRAR EL RESUMEN
-// ==========================================
-async function calcularResumen() {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return
-
-  const { data, error } = await supabase
-    .rpc('obtener_resumen_usuario', { p_user_id: user.id })
-
-  if (error) {
-    console.error('Error al calcular resumen con RPC:', error)
+  if (!data || data.length === 0) {
+    lista.innerHTML = '<li class="p-4 text-center text-gray-500 text-sm">No hay transacciones registradas</li>'
     return
   }
 
-  if (data && data.length > 0) {
-    const resumen = data[0]
-    document.getElementById('total-ingresos').textContent = Number(resumen.total_ingresos || 0).toFixed(2)
-    document.getElementById('total-gastos').textContent = Number(resumen.total_gastos || 0).toFixed(2)
-    document.getElementById('saldo-total').textContent = Number(resumen.saldo_total || 0).toFixed(2)
-  }
-}
-
-
-async function borrarTransaccion(id) {
-  const { error } = await supabase
-    .from('transacciones')
-    .delete()
-    .eq('id', id)
-
-  if (error) {
-    console.error('Error al borrar:', error)
-  } else {
-    cargarTransacciones()
-  }
-}
-
-cargarTransacciones()
-
-const formCategoria = document.getElementById('form-categoria')
-if (formCategoria) {
-  formCategoria.addEventListener('submit', async (e) => {
-    e.preventDefault()
-
-    const { data: { user } } = await supabase.auth.getUser()
-
-    const { error } = await supabase
-      .from('categorias')
-      .insert({
-        user_id: user.id,
-        nombre: document.getElementById('nombre-categoria').value
-      })
-
-    if (error) {
-      console.error('Error al crear categoría:', error)
-    } else {
-      formCategoria.reset()
-      cargarCategorias()
-    }
-  })
-}
-
-async function cargarCategorias() {
-  const { data, error } = await supabase
-    .from('categorias')
-    .select('*')
-    .order('nombre');
-
-  if (error) {
-    console.error('Error al cargar categorías:', error);
-    return;
-  }
-
-  const lista = document.getElementById('lista-categorias');
-  if (!lista) return; // Evita el error si el elemento no está en el DOM
-
-  lista.innerHTML = '';
-  data.forEach((cat) => {
-    const li = document.createElement('li');
-    li.className = 'flex justify-between items-center p-2 bg-gray-50 rounded border';
-    li.textContent = cat.nombre;
-    lista.appendChild(li);
-  });
-}
-
-cargarCategorias()
-
-// --- FUNCIONES DE BASE DE DATOS Y SQL ---
-
-// Insertar una transacción en Supabase
-export async function agregarTransaccionBD(concepto, monto, tipo) {
-  const { data, error } = await supabase
-    .from('transacciones')
-    .insert([
-      { concepto: concepto, monto: parseFloat(monto), tipo: tipo }
-    ])
-    .select(); // <-- IMPORTANTE: .select() hace que devuelva la fila insertada
-
-  if (error) {
-    console.error('Error insertando registro:', error);
-  } else {
-    console.log('Registro guardado con éxito:', data);
-    cargarTransaccionesBD(); // Recargar la lista
-  }
-}
-
-// Consultar todas las transacciones (SELECT)
-export async function cargarTransaccionesBD() {
-  const { data: transacciones, error } = await supabase
-    .from('transacciones')
-    .select('*')
-    .order('fecha', { ascending: false });
-
-  if (error) {
-    console.error('Error cargando registros:', error);
-    return;
-  }
-
-  const lista = document.getElementById('lista-transacciones');
-  if (!lista) return;
-
-  lista.innerHTML = ''; // Limpiar lista previa
-
-  transacciones.forEach((t) => {
-    const li = document.createElement('li');
-    li.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg border';
-    
-    // Determinar color y signo según el tipo
-    const esIngreso = t.tipo === 'ingreso';
-    const colorClase = esIngreso ? 'text-green-600' : 'text-red-600';
-    const signo = esIngreso ? '+' : '-';
+  data.forEach((t) => {
+    const li = document.createElement('li')
+    li.className = 'py-3 flex justify-between items-center'
+    const esIngreso = t.tipo === 'Ingreso'
+    const color = esIngreso ? 'text-green-600' : 'text-red-600'
+    const signo = esIngreso ? '+' : '-'
+    const catNombre = t.categorias ? t.categorias.nombre : 'Sin categoría'
 
     li.innerHTML = `
       <div>
-        <span class="font-semibold text-gray-800">${t.concepto}</span>
+        <p class="font-medium text-gray-800 text-sm">${t.concepto}</p>
+        <p class="text-xs text-gray-400">${catNombre}</p>
       </div>
-      <div class="flex items-center gap-4">
-        <span class="font-bold ${colorClase}">${signo}${parseFloat(t.monto).toFixed(2)} €</span>
-        <button onclick="eliminarTransaccionBD('${t.id}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1">✕</button>
+      <div class="flex items-center gap-3">
+        <span class="font-bold text-sm ${color}">${signo}${parseFloat(t.monto).toFixed(2)} €</span>
+        <button onclick="eliminarTransaccion('${t.id}')" class="text-gray-400 hover:text-red-600 font-bold px-1 text-xs">✕</button>
       </div>
-    `;
-    lista.appendChild(li);
-  });
+    `
+    lista.appendChild(li)
+  })
 }
 
-// Función para borrar un registro en Supabase por ID
-export async function eliminarTransaccionBD(id) {
-  const { error } = await supabase
-    .from('transacciones')
-    .delete()
-    .eq('id', id);
+// Eliminar Transacción
+window.eliminarTransaccion = async (id) => {
+  const { error } = await supabase.from('transacciones').delete().eq('id', id)
+  if (error) console.error('Error eliminando transacción:', error)
+  else {
+    cargarTransaccionesBD()
+    actualizarTotalesBD()
+  }
+}
+
+// Guardar Transacción
+document.getElementById('form-transaccion')?.addEventListener('submit', async (e) => {
+  e.preventDefault()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    alert('Debes iniciar sesión con tu email y contraseña arriba para guardar transacciones.')
+    return
+  }
+
+  const concepto = document.getElementById('concepto-transaccion').value
+  const monto = parseFloat(document.getElementById('monto-transaccion').value)
+  const tipo = document.getElementById('tipo-transaccion').value
+  const categoriaVal = document.getElementById('categoria-transaccion').value
+  const categoria_id = categoriaVal !== '' ? categoriaVal : null
+
+  const { error } = await supabase.from('transacciones').insert({
+    user_id: user.id,
+    concepto,
+    monto,
+    tipo,
+    categoria_id
+  })
 
   if (error) {
-    console.error('Error al eliminar:', error);
+    alert('Error al guardar la transacción: ' + error.message)
   } else {
-    console.log('Registro eliminado correctamente');
-    cargarTransaccionesBD(); // Recargar la lista automáticamente
+    document.getElementById('form-transaccion').reset()
+    cargarTransaccionesBD()
+    actualizarTotalesBD()
   }
+})
+
+// Actualizar Totales (Ingresos, Gastos, Saldo)
+async function actualizarTotalesBD() {
+  const { data, error } = await supabase.from('transacciones').select('monto, tipo')
+
+  if (error) return console.error('Error al obtener totales:', error)
+
+  let ingresos = 0
+  let gastos = 0
+
+  data?.forEach((t) => {
+    const monto = parseFloat(t.monto) || 0
+    if (t.tipo === 'Ingreso') ingresos += monto
+    else if (t.tipo === 'Gasto') gastos += monto
+  })
+
+  const saldo = ingresos - gastos
+
+  const totalIngresosEl = document.getElementById('total-ingresos')
+  const totalGastosEl = document.getElementById('total-gastos')
+  const saldoTotalEl = document.getElementById('saldo-total')
+
+  if (totalIngresosEl) totalIngresosEl.textContent = `${ingresos.toFixed(2)} €`
+  if (totalGastosEl) totalGastosEl.textContent = `${gastos.toFixed(2)} €`
+  if (saldoTotalEl) saldoTotalEl.textContent = `${saldo.toFixed(2)} €`
 }
 
-// Para hacer accesible la función desde el botón HTML
-window.eliminarTransaccionBD = eliminarTransaccionBD;
-// Función para rellenar el selector de categorías dinámicamente
-export async function rellenarSelectorCategorias() {
-  const { data: categorias, error } = await supabase
-    .from('categorias')
-    .select('*');
+// Inicialización
+supabase.auth.onAuthStateChange(() => {
+  actualizarUI()
+  cargarCategorias()
+  cargarTransaccionesBD()
+  actualizarTotalesBD()
+})
 
-  if (error) {
-    console.error('Error cargando categorías para el selector:', error);
-    return;
-  }
-
-  const select = document.getElementById('categoria-select');
-  if (!select) return;
-
-  select.innerHTML = '<option value="">Sin categoría</option>';
-
-  categorias.forEach((cat) => {
-    const option = document.createElement('option');
-    option.value = cat.nombre;
-    option.textContent = cat.nombre;
-    select.appendChild(option);
-  });
-}
-
-// Escuchar el envío del formulario de transacciones
-document.addEventListener('DOMContentLoaded', () => {
-  rellenarSelectorCategorias();
-
-  const formTransaccion = document.getElementById('form-transaccion');
-  if (formTransaccion) {
-    formTransaccion.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const concepto = document.getElementById('concepto').value;
-      const monto = document.getElementById('monto').value;
-      const tipo = document.getElementById('tipo').value;
-      const categoria = document.getElementById('categoria-select').value;
-
-      const { data, error } = await supabase
-        .from('transacciones')
-        .insert([
-          { concepto, monto: parseFloat(monto), tipo, categoria }
-        ])
-        .select();
-
-      if (error) {
-        console.error('Error insertando transacción:', error);
-      } else {
-        console.log('Transacción guardada:', data);
-        formTransaccion.reset();
-        cargarTransaccionesBD(); // Recargar el historial
-      }
-    });
-  }
-});
+actualizarUI()
+cargarCategorias()
+cargarTransaccionesBD()
+actualizarTotalesBD()
