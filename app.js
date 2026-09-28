@@ -1,6 +1,6 @@
 // Configuración de Supabase
-const SUPABASE_URL = 'https://tnbkrtczfthowhbush.supabase.co'
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuYmtydGN6ZnRob3doYnVzaCIsInJvbGUiOiJhb24iLCJpYXQiOjE3NDEzMjQ5NTMsImV4cCI6MjA1NjkwMDk1M30.b3B1Xw6k1T_j4WvJ3WbV7Xb1w4a'
+const SUPABASE_URL = 'https://eqkkrcjdzdlhzwdnunoh.supabase.co/rest/v1/'
+const SUPABASE_KEY = 'sb_publishable_0pfomhywrBLPzaDVJ927HQ_TGTqRNfD'
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
