@@ -290,7 +290,7 @@ export async function cargarTransaccionesBD() {
     lista.appendChild(li);
   });
 }
-console.log('Transacciones traídas desde Supabase:', transacciones);
+
 // Función para borrar un registro en Supabase por ID
 export async function eliminarTransaccionBD(id) {
   const { error } = await supabase
