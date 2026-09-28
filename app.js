@@ -181,26 +181,27 @@ async function borrarTransaccion(id) {
 cargarTransacciones()
 
 const formCategoria = document.getElementById('form-categoria')
+if (formCategoria) {
+  formCategoria.addEventListener('submit', async (e) => {
+    e.preventDefault()
 
-formCategoria.addEventListener('submit', async (e) => {
-  e.preventDefault()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: { user } } = await supabase.auth.getUser()
+    const { error } = await supabase
+      .from('categorias')
+      .insert({
+        user_id: user.id,
+        nombre: document.getElementById('nombre-categoria').value
+      })
 
-  const { error } = await supabase
-    .from('categorias')
-    .insert({
-      user_id: user.id,
-      nombre: document.getElementById('nombre-categoria').value
-    })
-
-  if (error) {
-    console.error('Error al crear categoría:', error)
-  } else {
-    formCategoria.reset()
-    cargarCategorias()
-  }
-})
+    if (error) {
+      console.error('Error al crear categoría:', error)
+    } else {
+      formCategoria.reset()
+      cargarCategorias()
+    }
+  })
+}
 
 async function cargarCategorias() {
   const { data, error } = await supabase
