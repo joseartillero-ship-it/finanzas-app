@@ -12,27 +12,33 @@ const btnLogin = document.getElementById('btn-login')
 const btnLogout = document.getElementById('btn-logout')
 const authStatus = document.getElementById('auth-status')
 
-btnSignup.addEventListener('click', async () => {
-  const { data, error } = await supabase.auth.signUp({
-    email: emailInput.value,
-    password: passwordInput.value
+if (btnSignup) {
+  btnSignup.addEventListener('click', async () => {
+    const { data, error } = await supabase.auth.signUp({
+      email: emailInput.value,
+      password: passwordInput.value
+    })
+    if (authStatus) authStatus.textContent = error ? error.message : 'Registrado. Revisa tu email si hace falta confirmarlo.'
   })
-  authStatus.textContent = error ? error.message : 'Registrado. Revisa tu email si hace falta confirmarlo.'
-})
+}
 
-btnLogin.addEventListener('click', async () => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: emailInput.value,
-    password: passwordInput.value
+if (btnLogin) {
+  btnLogin.addEventListener('click', async () => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: emailInput.value,
+      password: passwordInput.value
+    })
+    if (authStatus) authStatus.textContent = error ? error.message : 'Sesión iniciada'
   })
-  authStatus.textContent = error ? error.message : 'Sesión iniciada'
-  if (!error) actualizarUI()
-})
+}
 
-btnLogout.addEventListener('click', async () => {
-  await supabase.auth.signOut()
-  actualizarUI()
-})
+if (btnLogout) {
+  btnLogout.addEventListener('click', async () => {
+    await supabase.auth.signOut()
+    actualizarUI()
+  })
+}
+
 
 function actualizarUI() {
   supabase.auth.getSession().then(({ data }) => {
