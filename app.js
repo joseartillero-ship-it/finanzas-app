@@ -253,7 +253,7 @@ export async function agregarTransaccionBD(concepto, monto, tipo) {
 
 // Consultar todas las transacciones (SELECT)
 export async function cargarTransaccionesBD() {
-  const { data, error } = await supabase
+  const { data: transacciones, error } = await supabase
     .from('transacciones')
     .select('*')
     .order('fecha', { ascending: false });
@@ -263,5 +263,47 @@ export async function cargarTransaccionesBD() {
     return;
   }
 
-  console.log('Transacciones traídas desde Supabase:', data);
+  const lista = document.getElementById('lista-transacciones');
+  if (!lista) return;
+
+  lista.innerHTML = ''; // Limpiar lista previa
+
+  transacciones.forEach((t) => {
+    const li = document.createElement('li');
+    li.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg border';
+    
+    // Determinar color y signo según el tipo
+    const esIngreso = t.tipo === 'ingreso';
+    const colorClase = esIngreso ? 'text-green-600' : 'text-red-600';
+    const signo = esIngreso ? '+' : '-';
+
+    li.innerHTML = `
+      <div>
+        <span class="font-semibold text-gray-800">${t.concepto}</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="font-bold ${colorClase}">${signo}${parseFloat(t.monto).toFixed(2)} €</span>
+        <button onclick="eliminarTransaccionBD('${t.id}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-1">✕</button>
+      </div>
+    `;
+    lista.appendChild(li);
+  });
 }
+  console.log('Transacciones traídas desde Supabase:', data);
+// Función para borrar un registro en Supabase por ID
+export async function eliminarTransaccionBD(id) {
+  const { error } = await supabase
+    .from('transacciones')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error al eliminar:', error);
+  } else {
+    console.log('Registro eliminado correctamente');
+    cargarTransaccionesBD(); // Recargar la lista automáticamente
+  }
+}
+
+// Para hacer accesible la función desde el botón HTML
+window.eliminarTransaccionBD = eliminarTransaccionBD;
