@@ -2,11 +2,11 @@
 const SUPABASE_URL = 'https://tnbkrtczfthowhbush.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuYmtydGN6ZnRob3doYnVzaCIsInJvbGUiOiJhb24iLCJpYXQiOjE3NDEzMjQ5NTMsImV4cCI6MjA1NjkwMDk1M30.b3B1Xw6k1T_j4WvJ3WbV7Xb1w4a'
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
 // Actualizar barra de usuario y botones de login
 async function actualizarUI() {
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session } } = await supabaseClient.auth.getSession()
   const userEmail = document.getElementById('user-email')
   const authForms = document.getElementById('auth-forms')
   const btnLogout = document.getElementById('btn-logout')
@@ -26,7 +26,7 @@ async function actualizarUI() {
 document.getElementById('btn-login')?.addEventListener('click', async () => {
   const email = document.getElementById('email').value
   const password = document.getElementById('password').value
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
   if (error) alert('Error al iniciar sesión: ' + error.message)
   else {
     actualizarUI()
@@ -39,13 +39,13 @@ document.getElementById('btn-login')?.addEventListener('click', async () => {
 document.getElementById('btn-signup')?.addEventListener('click', async () => {
   const email = document.getElementById('email').value
   const password = document.getElementById('password').value
-  const { error } = await supabase.auth.signUp({ email, password })
+  const { error } = await supabaseClient.auth.signUp({ email, password })
   if (error) alert('Error al registrarse: ' + error.message)
-  else alert('¡Registro completado! Revisa tu email o inicia sesión.')
+  else alert('¡Registro completado! Si se requiere confirmación, revisa tu correo.')
 })
 
 document.getElementById('btn-logout')?.addEventListener('click', async () => {
-  await supabase.auth.signOut()
+  await supabaseClient.auth.signOut()
   actualizarUI()
   cargarCategorias()
   cargarTransaccionesBD()
@@ -54,7 +54,7 @@ document.getElementById('btn-logout')?.addEventListener('click', async () => {
 
 // Cargar Categorías
 async function cargarCategorias() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('categorias')
     .select('*')
     .order('nombre')
@@ -68,7 +68,6 @@ async function cargarCategorias() {
   if (selectCategoria) selectCategoria.innerHTML = '<option value="">Sin categoría</option>'
 
   data?.forEach((cat) => {
-    // Añadir a lista con botón eliminar "X"
     if (lista) {
       const li = document.createElement('li')
       li.className = 'flex justify-between items-center p-2 bg-gray-50 rounded border text-sm'
@@ -79,7 +78,6 @@ async function cargarCategorias() {
       lista.appendChild(li)
     }
 
-    // Añadir al select del formulario
     if (selectCategoria) {
       const option = document.createElement('option')
       option.value = cat.id
@@ -91,9 +89,9 @@ async function cargarCategorias() {
 
 // Eliminar Categoría
 window.eliminarCategoria = async (id) => {
-  const { error } = await supabase.from('categorias').delete().eq('id', id)
+  const { error } = await supabaseClient.from('categorias').delete().eq('id', id)
   if (error) {
-    alert('No se pudo borrar la categoría (comprueba si está en uso): ' + error.message)
+    alert('No se pudo borrar la categoría: ' + error.message)
   } else {
     cargarCategorias()
   }
@@ -105,14 +103,14 @@ document.getElementById('form-categoria')?.addEventListener('submit', async (e) 
   const input = document.getElementById('nombre-categoria')
   const nombre = input.value.trim()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await supabaseClient.auth.getUser()
 
-  const { error } = await supabase.from('categorias').insert({
+  const { error } = await supabaseClient.from('categorias').insert({
     nombre,
     user_id: user ? user.id : null
   })
 
-  if (error) console.error('Error insertando categoría:', error)
+  if (error) alert('Error insertando categoría: ' + error.message)
   else {
     input.value = ''
     cargarCategorias()
@@ -121,7 +119,7 @@ document.getElementById('form-categoria')?.addEventListener('submit', async (e) 
 
 // Cargar Transacciones
 async function cargarTransaccionesBD() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('transacciones')
     .select('*, categorias(nombre)')
     .order('created_at', { ascending: false })
@@ -139,7 +137,7 @@ async function cargarTransaccionesBD() {
 
   data.forEach((t) => {
     const li = document.createElement('li')
-    li.className = 'py-3 flex justify-between items-center'
+    li.className = 'py-3 flex justify-between items-center border-b border-gray-100'
     const esIngreso = t.tipo === 'Ingreso'
     const color = esIngreso ? 'text-green-600' : 'text-red-600'
     const signo = esIngreso ? '+' : '-'
@@ -161,7 +159,7 @@ async function cargarTransaccionesBD() {
 
 // Eliminar Transacción
 window.eliminarTransaccion = async (id) => {
-  const { error } = await supabase.from('transacciones').delete().eq('id', id)
+  const { error } = await supabaseClient.from('transacciones').delete().eq('id', id)
   if (error) console.error('Error eliminando transacción:', error)
   else {
     cargarTransaccionesBD()
@@ -173,9 +171,9 @@ window.eliminarTransaccion = async (id) => {
 document.getElementById('form-transaccion')?.addEventListener('submit', async (e) => {
   e.preventDefault()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await supabaseClient.auth.getUser()
   if (!user) {
-    alert('Debes iniciar sesión con tu email y contraseña arriba para guardar transacciones.')
+    alert('Debes iniciar sesión con tu email y contraseña en la barra superior para guardar transacciones.')
     return
   }
 
@@ -185,7 +183,7 @@ document.getElementById('form-transaccion')?.addEventListener('submit', async (e
   const categoriaVal = document.getElementById('categoria-transaccion').value
   const categoria_id = categoriaVal !== '' ? categoriaVal : null
 
-  const { error } = await supabase.from('transacciones').insert({
+  const { error } = await supabaseClient.from('transacciones').insert({
     user_id: user.id,
     concepto,
     monto,
@@ -204,7 +202,7 @@ document.getElementById('form-transaccion')?.addEventListener('submit', async (e
 
 // Actualizar Totales (Ingresos, Gastos, Saldo)
 async function actualizarTotalesBD() {
-  const { data, error } = await supabase.from('transacciones').select('monto, tipo')
+  const { data, error } = await supabaseClient.from('transacciones').select('monto, tipo')
 
   if (error) return console.error('Error al obtener totales:', error)
 
@@ -228,14 +226,15 @@ async function actualizarTotalesBD() {
   if (saldoTotalEl) saldoTotalEl.textContent = `${saldo.toFixed(2)} €`
 }
 
-// Inicialización
-supabase.auth.onAuthStateChange(() => {
+// Escuchar cambios de autenticación
+supabaseClient.auth.onAuthStateChange(() => {
   actualizarUI()
   cargarCategorias()
   cargarTransaccionesBD()
   actualizarTotalesBD()
 })
 
+// Carga inicial
 actualizarUI()
 cargarCategorias()
 cargarTransaccionesBD()
