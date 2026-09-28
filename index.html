@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Panel de Finanzas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <header class="app-header">
+      <h1>Panel de Finanzas Personal</h1>
+      <div id="auth" class="auth-box">
+        <input type="email" id="email" placeholder="Correo electrónico">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button id="btn-login" class="btn btn-primary">Iniciar sesión</button>
+        <button id="btn-signup" class="btn btn-secondary">Registrarse</button>
+        <button id="btn-logout" class="btn btn-danger" style="display:none;">Cerrar sesión</button>
+        <p id="auth-status" class="status-message"></p>
+      </div>
+    </header>
+
+    <main id="app">
+      <!-- Tarjetas del Resumen Financiero -->
+      <section class="summary-section">
+        <div class="card card-income">
+          <h3>Ingresos</h3>
+          <p class="amount"><span id="total-ingresos">0.00</span> €</p>
+        </div>
+        <div class="card card-expense">
+          <h3>Gastos</h3>
+          <p class="amount"><span id="total-gastos">0.00</span> €</p>
+        </div>
+        <div class="card card-balance">
+          <h3>Saldo Total</h3>
+          <p class="amount"><span id="saldo-total">0.00</span> €</p>
+        </div>
+      </section>
+
+      <div class="grid-layout">
+        <!-- Sección de Categorías -->
+        <section class="panel">
+          <h2>Gestión de Categorías</h2>
+          <form id="form-categoria" class="form-row">
+            <input type="text" id="nombre-categoria" placeholder="Nombre de categoría" required>
+            <button type="submit" class="btn btn-primary">Añadir</button>
+          </form>
+          <ul id="lista-categorias" class="item-list"></ul>
+        </section>
+
+        <!-- Sección de Transacciones -->
+        <section class="panel">
+          <h2>Nueva Transacción</h2>
+          <form id="form-transaccion" class="form-grid">
+            <input type="number" id="monto" step="0.01" placeholder="Monto (€)" required>
+            <select id="tipo" required>
+              <option value="gasto">Gasto</option>
+              <option value="ingreso">Ingreso</option>
+            </select>
+            <select id="categoria" required></select>
+            <input type="text" id="descripcion" placeholder="Descripción">
+            <input type="date" id="fecha" required>
+            <button type="submit" class="btn btn-success full-width">Guardar Transacción</button>
+          </form>
+
+          <h2>Historial de Transacciones</h2>
+          <ul id="lista-transacciones" class="item-list"></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
