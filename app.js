@@ -233,3 +233,35 @@ async function cargarCategorias() {
 
 cargarCategorias()
 
+// --- FUNCIONES DE BASE DE DATOS Y SQL ---
+
+// Insertar una transacción en Supabase
+export async function agregarTransaccionBD(concepto, monto, tipo) {
+  const { data, error } = await supabase
+    .from('transacciones')
+    .insert([
+      { concepto: concepto, monto: parseFloat(monto), tipo: tipo }
+    ]);
+
+  if (error) {
+    console.error('Error insertando registro:', error);
+  } else {
+    console.log('Registro guardado con éxito:', data);
+    cargarTransaccionesBD();
+  }
+}
+
+// Consultar todas las transacciones (SELECT)
+export async function cargarTransaccionesBD() {
+  const { data, error } = await supabase
+    .from('transacciones')
+    .select('*')
+    .order('fecha', { ascending: false });
+
+  if (error) {
+    console.error('Error cargando registros:', error);
+    return;
+  }
+
+  console.log('Transacciones traídas desde Supabase:', data);
+}
