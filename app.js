@@ -43,9 +43,13 @@ if (btnLogout) {
 function actualizarUI() {
   supabase.auth.getSession().then(({ data }) => {
     const logueado = !!data.session
-    btnLogout.style.display = logueado ? 'inline' : 'none'
-    btnLogin.style.display = logueado ? 'none' : 'inline'
-    btnSignup.style.display = logueado ? 'none' : 'inline'
+    const btnLogout = document.getElementById('btn-logout')
+    const btnLogin = document.getElementById('btn-login')
+    const btnSignup = document.getElementById('btn-signup')
+
+    if (btnLogout) btnLogout.style.display = logueado ? 'inline' : 'none'
+    if (btnLogin) btnLogin.style.display = logueado ? 'none' : 'inline'
+    if (btnSignup) btnSignup.style.display = logueado ? 'none' : 'inline'
   })
 }
 
