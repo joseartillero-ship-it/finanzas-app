@@ -241,13 +241,14 @@ export async function agregarTransaccionBD(concepto, monto, tipo) {
     .from('transacciones')
     .insert([
       { concepto: concepto, monto: parseFloat(monto), tipo: tipo }
-    ]);
+    ])
+    .select(); // <-- IMPORTANTE: .select() hace que devuelva la fila insertada
 
   if (error) {
     console.error('Error insertando registro:', error);
   } else {
     console.log('Registro guardado con éxito:', data);
-    cargarTransaccionesBD();
+    cargarTransaccionesBD(); // Recargar la lista
   }
 }
 
@@ -289,7 +290,7 @@ export async function cargarTransaccionesBD() {
     lista.appendChild(li);
   });
 }
-  console.log('Transacciones traídas desde Supabase:', data);
+console.log('Transacciones traídas desde Supabase:', transacciones);
 // Función para borrar un registro en Supabase por ID
 export async function eliminarTransaccionBD(id) {
   const { error } = await supabase
