@@ -308,3 +308,58 @@ export async function eliminarTransaccionBD(id) {
 
 // Para hacer accesible la función desde el botón HTML
 window.eliminarTransaccionBD = eliminarTransaccionBD;
+// Función para rellenar el selector de categorías dinámicamente
+export async function rellenarSelectorCategorias() {
+  const { data: categorias, error } = await supabase
+    .from('categorias')
+    .select('*');
+
+  if (error) {
+    console.error('Error cargando categorías para el selector:', error);
+    return;
+  }
+
+  const select = document.getElementById('categoria-select');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">Sin categoría</option>';
+
+  categorias.forEach((cat) => {
+    const option = document.createElement('option');
+    option.value = cat.nombre;
+    option.textContent = cat.nombre;
+    select.appendChild(option);
+  });
+}
+
+// Escuchar el envío del formulario de transacciones
+document.addEventListener('DOMContentLoaded', () => {
+  rellenarSelectorCategorias();
+
+  const formTransaccion = document.getElementById('form-transaccion');
+  if (formTransaccion) {
+    formTransaccion.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const concepto = document.getElementById('concepto').value;
+      const monto = document.getElementById('monto').value;
+      const tipo = document.getElementById('tipo').value;
+      const categoria = document.getElementById('categoria-select').value;
+
+      const { data, error } = await supabase
+        .from('transacciones')
+        .insert([
+          { concepto, monto: parseFloat(monto), tipo, categoria }
+        ])
+        .select();
+
+      if (error) {
+        console.error('Error insertando transacción:', error);
+      } else {
+        console.log('Transacción guardada:', data);
+        formTransaccion.reset();
+        cargarTransaccionesBD(); // Recargar el historial
+      }
+    });
+  }
+});
