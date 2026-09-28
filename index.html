@@ -50,34 +50,85 @@
           <ul id="lista-categorias" class="item-list"></ul>
         </section>
 
-        <!-- Sección de Transacciones -->
-        <section class="panel">
-          <h2>Nueva Transacción</h2>
-          <form id="form-transaccion" class="form-grid">
-            <input type="number" id="monto" step="0.01" placeholder="Monto (€)" required>
-            <select id="tipo" required>
-              <option value="gasto">Gasto</option>
-              <option value="ingreso">Ingreso</option>
-            </select>
-            <select id="categoria" required></select>
-            <input type="text" id="descripcion" placeholder="Descripción">
-            <input type="date" id="fecha" required>
-            <button type="submit" class="btn btn-success full-width">Guardar Transacción</button>
-          </form>
-
-          <h2>Historial de Transacciones</h2>
-          <ul id="lista-transacciones" class="item-list"></ul>
-        </section>
+ <!-- Formulario Nueva Transacción -->
+<div class="card bg-white p-6 rounded-lg shadow-md mb-6">
+  <h2 class="text-xl font-semibold mb-4 text-gray-700">Nueva Transacción</h2>
+  <form id="form-transaccion" class="space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Concepto</label>
+        <input 
+          type="text" 
+          id="concepto" 
+          placeholder="Ej: Compra supermercado" 
+          required 
+          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
       </div>
-    </main>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Monto (€)</label>
+        <input 
+          type="number" 
+          step="0.01" 
+          id="monto" 
+          placeholder="0.00" 
+          required 
+          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Tipo</label>
+        <select 
+          id="tipo" 
+          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          <option value="gasto">Gasto</option>
+          <option value="ingreso">Ingreso</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">Categoría</label>
+        <select 
+          id="categoria-select" 
+          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          <option value="">Sin categoría</option>
+        </select>
+      </div>
+    </div>
+
+    <button 
+      type="submit" 
+      class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded transition-colors"
+    >
+      Guardar Transacción
+    </button>
+  </form>
+</div>
+
+<!-- Tabla Historial de Transacciones -->
+<div class="card bg-white p-6 rounded-lg shadow-md">
+  <h2 class="text-xl font-semibold mb-4 text-gray-700">Historial de Transacciones</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b bg-gray-50 text-gray-600 text-sm">
+          <th class="p-3">Concepto</th>
+          <th class="p-3">Monto</th>
+          <th class="p-3">Tipo</th>
+          <th class="p-3">Categoría</th>
+          <th class="p-3 text-right">Acción</th>
+        </tr>
+      </thead>
+      <tbody id="lista-transacciones">
+        <!-- Se rellena dinámicamente desde app.js -->
+      </tbody>
+    </table>
   </div>
-  <!-- Lista para mostrar las transacciones de Supabase -->
-  <div class="mt-6 p-4 bg-white rounded-lg shadow">
-    <h3 class="text-xl font-bold mb-3">Historial de Transacciones</h3>
-    <ul id="lista-transacciones" class="space-y-2">
-      <!-- Aquí se insertarán las filas dinámicamente -->
-    </ul>
-  </div>
+</div>
 <!-- Formulario para añadir transacción con categorías -->
   <div class="p-4 bg-white rounded-lg shadow mb-6">
     <h3 class="text-lg font-bold mb-3">Nueva Transacción</h3>
