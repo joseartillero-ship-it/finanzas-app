@@ -206,29 +206,23 @@ async function cargarCategorias() {
   const { data, error } = await supabase
     .from('categorias')
     .select('*')
-    .order('nombre')
+    .order('nombre');
 
   if (error) {
-    console.error('Error al cargar categorías:', error)
-    return
+    console.error('Error al cargar categorías:', error);
+    return;
   }
 
-  const lista = document.getElementById('lista-categorias')
-  lista.innerHTML = ''
+  const lista = document.getElementById('lista-categorias');
+  if (!lista) return; // Evita el error si el elemento no está en el DOM
 
-  const selectCategoria = document.getElementById('categoria')
-  selectCategoria.innerHTML = '<option value="">Sin categoría</option>'
-
-  data.forEach(c => {
-    const li = document.createElement('li')
-    li.textContent = c.nombre
-    lista.appendChild(li)
-
-    const option = document.createElement('option')
-    option.value = c.id
-    option.textContent = c.nombre
-    selectCategoria.appendChild(option)
-  })
+  lista.innerHTML = '';
+  data.forEach((cat) => {
+    const li = document.createElement('li');
+    li.className = 'flex justify-between items-center p-2 bg-gray-50 rounded border';
+    li.textContent = cat.nombre;
+    lista.appendChild(li);
+  });
 }
 
 cargarCategorias()
