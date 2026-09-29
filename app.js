@@ -1,248 +1,250 @@
-// Configuración de Supabase
-const SUPABASE_URL = 'https://eqkkrcjdzdlhzwdnunoh.supabase.co'
-const SUPABASE_KEY = 'sb_publishable_0pfomhywrBLPzaDVJ927HQ_TGTqRNfD'
+// Supabase Configuration
+const SUPABASE_URL = 'https://eqkkrcjdzd1hzwndunoh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_8pfonhyrBLPz#OV3927HQ_TGTQRNFD';
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Actualizar barra de usuario y botones de login
+// Update user bar and auth buttons
 async function actualizarUI() {
-  const { data: { session } } = await supabaseClient.auth.getSession()
-  const userEmail = document.getElementById('user-email')
-  const authForms = document.getElementById('auth-forms')
-  const btnLogout = document.getElementById('btn-logout')
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const userEmail = document.getElementById('user-email');
+    const authForms = document.getElementById('auth-forms');
+    const btnLogout = document.getElementById('btn-logout');
 
-  if (session) {
-    if (userEmail) userEmail.textContent = `Sesión activa: ${session.user.email}`
-    if (authForms) authForms.classList.add('hidden')
-    if (btnLogout) btnLogout.classList.remove('hidden')
-  } else {
-    if (userEmail) userEmail.textContent = 'Inicia sesión o regístrate para guardar tus datos'
-    if (authForms) authForms.classList.remove('hidden')
-    if (btnLogout) btnLogout.classList.add('hidden')
-  }
+    if (session) {
+        if (userEmail) userEmail.textContent = `Active session: ${session.user.email}`;
+        if (authForms) authForms.classList.add('hidden');
+        if (btnLogout) btnLogout.classList.remove('hidden');
+    } else {
+        if (userEmail) userEmail.textContent = 'Sign in or register to save your data';
+        if (authForms) authForms.classList.remove('hidden');
+        if (btnLogout) btnLogout.classList.add('hidden');
+    }
 }
 
-// Eventos Login / Registro / Logout
+// Login / Signup Events
 document.getElementById('btn-login')?.addEventListener('click', async () => {
-  const email = document.getElementById('email').value
-  const password = document.getElementById('password').value
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password })
-  if (error) alert('Error al iniciar sesión: ' + error.message)
-  else {
-    actualizarUI()
-    cargarCategorias()
-    cargarTransaccionesBD()
-    actualizarTotalesBD()
-  }
-})
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) alert('Error signing in: ' + error.message);
+    else {
+        actualizarUI();
+        cargarCategorias();
+        cargarTransaccionesBD();
+        actualizarTotalesBD();
+        renderizarGraficoGastos();
+    }
+});
 
 document.getElementById('btn-signup')?.addEventListener('click', async () => {
-  const email = document.getElementById('email').value
-  const password = document.getElementById('password').value
-  const { error } = await supabaseClient.auth.signUp({ email, password })
-  if (error) alert('Error al registrarse: ' + error.message)
-  else alert('¡Registro completado! Si se requiere confirmación, revisa tu correo.')
-})
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const { error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) alert('Error registering: ' + error.message);
+    else alert('Registration complete! If confirmation is required, please check your email.');
+});
 
 document.getElementById('btn-logout')?.addEventListener('click', async () => {
-  await supabaseClient.auth.signOut()
-  actualizarUI()
-  cargarCategorias()
-  cargarTransaccionesBD()
-  actualizarTotalesBD()
-})
+    await supabaseClient.auth.signOut();
+    actualizarUI();
+    cargarCategorias();
+    cargarTransaccionesBD();
+    actualizarTotalesBD();
+    renderizarGraficoGastos();
+});
 
-// Cargar Categorías
+// Load Categories
 async function cargarCategorias() {
-  const { data, error } = await supabaseClient
-    .from('categorias')
-    .select('*')
-    .order('nombre')
+    const { data, error } = await supabaseClient
+        .from('categorias')
+        .select('*')
+        .order('nombre');
 
-  if (error) return console.error('Error cargando categorías:', error)
+    if (error) return console.error('Error loading categories:', error);
 
-  const lista = document.getElementById('lista-categorias')
-  const selectCategoria = document.getElementById('categoria-transaccion')
+    const lista = document.getElementById('lista-categorias');
+    const selectCategoria = document.getElementById('categoria-transaccion');
 
-  if (lista) lista.innerHTML = ''
-  if (selectCategoria) selectCategoria.innerHTML = '<option value="">Sin categoría</option>'
+    if (lista) lista.innerHTML = '';
+    if (selectCategoria) selectCategoria.innerHTML = '<option value="">No category</option>';
 
-  data?.forEach((cat) => {
-    if (lista) {
-      const li = document.createElement('li')
-      li.className = 'flex justify-between items-center p-2 bg-gray-50 rounded border text-sm'
-      li.innerHTML = `
-        <span class="text-gray-700">${cat.nombre}</span>
-        <button onclick="eliminarCategoria('${cat.id}')" class="text-red-500 hover:text-red-700 font-bold px-2 py-0.5 rounded text-xs hover:bg-red-50">✕</button>
-      `
-      lista.appendChild(li)
-    }
+    data?.forEach((cat) => {
+        if (lista) {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center p-2 bg-gray-50 rounded border text-sm';
+            li.innerHTML = `
+                <span class="text-gray-700">${cat.nombre}</span>
+                <button onclick="eliminarCategoria('${cat.id}')" class="text-red-500 hover:text-red-700 font-bold">Delete</button>
+            `;
+            lista.appendChild(li);
+        }
 
-    if (selectCategoria) {
-      const option = document.createElement('option')
-      option.value = cat.id
-      option.textContent = cat.nombre
-      selectCategoria.appendChild(option)
-    }
-  })
+        if (selectCategoria) {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = cat.nombre;
+            selectCategoria.appendChild(option);
+        }
+    });
 }
 
-// Eliminar Categoría
+// Delete Category
 window.eliminarCategoria = async (id) => {
-  const { error } = await supabaseClient.from('categorias').delete().eq('id', id)
-  if (error) {
-    alert('No se pudo borrar la categoría: ' + error.message)
-  } else {
-    cargarCategorias()
-  }
-}
+    const { error } = await supabaseClient.from('categorias').delete().eq('id', id);
+    if (error) {
+        alert('Could not delete category: ' + error.message);
+    } else {
+        cargarCategorias();
+    }
+};
 
-// Añadir Categoría
+// Add Category
 document.getElementById('form-categoria')?.addEventListener('submit', async (e) => {
-  e.preventDefault()
-  const input = document.getElementById('nombre-categoria')
-  const nombre = input.value.trim()
+    e.preventDefault();
+    const input = document.getElementById('nombre-categoria');
+    const nombre = input.value.trim();
 
-  const { data: { user } } = await supabaseClient.auth.getUser()
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
-  const { error } = await supabaseClient.from('categorias').insert({
-    nombre,
-    user_id: user ? user.id : null
-  })
+    const { error } = await supabaseClient.from('categorias').insert({
+        nombre,
+        user_id: user ? user.id : null
+    });
 
-  if (error) alert('Error insertando categoría: ' + error.message)
-  else {
-    input.value = ''
-    cargarCategorias()
-  }
-})
+    if (error) alert('Error inserting category: ' + error.message);
+    else {
+        input.value = '';
+        cargarCategorias();
+    }
+});
 
-// Cargar Transacciones
+// Load Transactions
 async function cargarTransaccionesBD() {
-  const { data, error } = await supabaseClient
-    .from('transacciones')
-    .select('*, categorias(nombre)')
-    .order('created_at', { ascending: false })
+    const lista = document.getElementById('lista-transacciones');
+    if (!lista) return;
+    lista.innerHTML = '';
 
-  if (error) return console.error('Error cargando transacciones:', error)
+    const { data, error } = await supabaseClient
+        .from('transacciones')
+        .select('*, categorias(nombre)')
+        .order('created_at', { ascending: false });
 
-  const lista = document.getElementById('lista-transacciones')
-  if (!lista) return
-  lista.innerHTML = ''
+    if (error) return console.error('Error loading transactions:', error);
 
-  if (!data || data.length === 0) {
-    lista.innerHTML = '<li class="p-4 text-center text-gray-500 text-sm">No hay transacciones registradas</li>'
-    return
-  }
+    if (!data || data.length === 0) {
+        lista.innerHTML = '<li class="p-4 text-center text-gray-500 text-sm">No transactions recorded yet</li>';
+        return;
+    }
 
-  data.forEach((t) => {
-    const li = document.createElement('li')
-    li.className = 'py-3 flex justify-between items-center border-b border-gray-100'
-    const esIngreso = t.tipo === 'Ingreso'
-    const color = esIngreso ? 'text-green-600' : 'text-red-600'
-    const signo = esIngreso ? '+' : '-'
-    const catNombre = t.categorias ? t.categorias.nombre : 'Sin categoría'
+    data.forEach((t) => {
+        const li = document.createElement('li');
+        li.className = 'py-3 flex justify-between items-center border-b border-gray-100';
+        const esIngreso = t.tipo === 'Ingreso';
+        const color = esIngreso ? 'text-green-600' : 'text-red-600';
+        const signo = esIngreso ? '+' : '-';
+        const catNombre = t.categorias ? t.categorias.nombre : 'No category';
 
-    li.innerHTML = `
-      <div>
-        <p class="font-medium text-gray-800 text-sm">${t.concepto}</p>
-        <p class="text-xs text-gray-400">${catNombre}</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="font-bold text-sm ${color}">${signo}${parseFloat(t.monto).toFixed(2)} €</span>
-        <button onclick="eliminarTransaccion('${t.id}')" class="text-gray-400 hover:text-red-600 font-bold px-1 text-xs">✕</button>
-      </div>
-    `
-    lista.appendChild(li)
-  })
+        li.innerHTML = `
+            <div>
+                <p class="font-medium text-gray-800 text-sm">${t.concepto}</p>
+                <p class="text-xs text-gray-400">${catNombre}</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="font-bold text-sm ${color}">${signo}${parseFloat(t.monto).toFixed(2)}</span>
+                <button onclick="eliminarTransaccion('${t.id}')" class="text-gray-400 hover:text-red-600 font-bold">Delete</button>
+            </div>
+        `;
+        lista.appendChild(li);
+    });
 }
 
-// Eliminar Transacción
+// Delete Transaction
 window.eliminarTransaccion = async (id) => {
-  const { error } = await supabaseClient.from('transacciones').delete().eq('id', id)
-  if (error) console.error('Error eliminando transacción:', error)
-  else {
-    cargarTransaccionesBD()
-    actualizarTotalesBD()
-  }
-}
+    const { error } = await supabaseClient.from('transacciones').delete().eq('id', id);
+    if (error) console.error('Error deleting transaction:', error);
+    else {
+        cargarTransaccionesBD();
+        actualizarTotalesBD();
+        renderizarGraficoGastos();
+    }
+};
 
-// Guardar Transacción
+// Save Transaction
 document.getElementById('form-transaccion')?.addEventListener('submit', async (e) => {
-  e.preventDefault()
+    e.preventDefault();
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
-  const { data: { user } } = await supabaseClient.auth.getUser()
-  if (!user) {
-    alert('Debes iniciar sesión con tu email y contraseña en la barra superior para guardar transacciones.')
-    return
-  }
+    if (!user) {
+        alert('You must sign in with your email and password in the top bar to save transactions.');
+        return;
+    }
 
-  const concepto = document.getElementById('concepto-transaccion').value
-  const monto = parseFloat(document.getElementById('monto-transaccion').value)
-  const tipo = document.getElementById('tipo-transaccion').value
-  const categoriaVal = document.getElementById('categoria-transaccion').value
-  const categoria_id = categoriaVal !== '' ? categoriaVal : null
+    const concepto = document.getElementById('concepto-transaccion').value;
+    const monto = parseFloat(document.getElementById('monto-transaccion').value);
+    const tipo = document.getElementById('tipo-transaccion').value;
+    const categoria_id = document.getElementById('categoria-transaccion').value || null;
 
-  const { error } = await supabaseClient.from('transacciones').insert({
-    user_id: user.id,
-    concepto,
-    monto,
-    tipo,
-    categoria_id
-  })
+    const { error } = await supabaseClient.from('transacciones').insert({
+        concepto,
+        monto,
+        tipo,
+        categoria_id,
+        user_id: user.id
+    });
 
-  if (error) {
-    alert('Error al guardar la transacción: ' + error.message)
-  } else {
-    document.getElementById('form-transaccion').reset()
-    cargarTransaccionesBD()
-    actualizarTotalesBD()
-  }
-})
+    if (error) {
+        alert('Error saving transaction: ' + error.message);
+    } else {
+        e.target.reset();
+        cargarTransaccionesBD();
+        actualizarTotalesBD();
+        renderizarGraficoGastos();
+    }
+});
 
-// Actualizar Totales (Ingresos, Gastos, Saldo)
+// Update Totals (Income, Expenses, Balance)
 async function actualizarTotalesBD() {
-  const { data, error } = await supabaseClient.from('transacciones').select('monto, tipo')
+    const { data, error } = await supabaseClient.from('transacciones').select('monto, tipo');
+    if (error) return console.error('Error fetching totals:', error);
 
-  if (error) return console.error('Error al obtener totales:', error)
+    let ingresos = 0;
+    let gastos = 0;
 
-  let ingresos = 0
-  let gastos = 0
+    data?.forEach((t) => {
+        const monto = parseFloat(t.monto) || 0;
+        if (t.tipo === 'Ingreso') ingresos += monto;
+        else if (t.tipo === 'Gasto') gastos += monto;
+    });
 
-  data?.forEach((t) => {
-    const monto = parseFloat(t.monto) || 0
-    if (t.tipo === 'Ingreso') ingresos += monto
-    else if (t.tipo === 'Gasto') gastos += monto
-  })
+    const saldo = ingresos - gastos;
 
-  const saldo = ingresos - gastos
+    const totalIngresosEl = document.getElementById('total-ingresos');
+    const totalGastosEl = document.getElementById('total-gastos');
+    const saldoTotalEl = document.getElementById('saldo-total');
 
-  const totalIngresosEl = document.getElementById('total-ingresos')
-  const totalGastosEl = document.getElementById('total-gastos')
-  const saldoTotalEl = document.getElementById('saldo-total')
-
-  if (totalIngresosEl) totalIngresosEl.textContent = `${ingresos.toFixed(2)} €`
-  if (totalGastosEl) totalGastosEl.textContent = `${gastos.toFixed(2)} €`
-  if (saldoTotalEl) saldoTotalEl.textContent = `${saldo.toFixed(2)} €`
+    if (totalIngresosEl) totalIngresosEl.textContent = `${ingresos.toFixed(2)}`;
+    if (totalGastosEl) totalGastosEl.textContent = `${gastos.toFixed(2)}`;
+    if (saldoTotalEl) saldoTotalEl.textContent = `${saldo.toFixed(2)}`;
 }
 
-// Escuchar cambios de autenticación
+// Listen to Auth State Changes
 supabaseClient.auth.onAuthStateChange(() => {
-  actualizarUI()
-  cargarCategorias()
-  cargarTransaccionesBD()
-  actualizarTotalesBD()
-})
+    actualizarUI();
+    cargarCategorias();
+    cargarTransaccionesBD();
+    actualizarTotalesBD();
+    renderizarGraficoGastos();
+});
 
-// Carga inicial
-actualizarUI()
-cargarCategorias()
-cargarTransaccionesBD()
-actualizarTotalesBD()
-// ... (aquí tienes todo tu código actual de app.js: la configuración de Supabase, actualizarUI, etc.)
+// Initial Load
+actualizarUI();
+cargarCategorias();
+cargarTransaccionesBD();
+actualizarTotalesBD();
 
-// Pega la función del gráfico al final del archivo app.js:
-let miGrafico = null;
+// Render Expense Chart (Chart.js)
+let migrafico = null;
 
 async function renderizarGraficoGastos() {
     try {
@@ -260,11 +262,11 @@ async function renderizarGraficoGastos() {
         if (error) throw error;
 
         const gastosPorCategoria = {};
-        
-        data.forEach(t => {
-            const nombreCategoria = t.categorias ? t.categorias.nombre : 'Sin categoría';
-            const monto = Math.abs(Number(t.monto));
 
+        data.forEach(t => {
+            const nombreCategoria = t.categorias ? t.categorias.nombre : 'No category';
+            const monto = Math.abs(Number(t.monto));
+            
             if (!gastosPorCategoria[nombreCategoria]) {
                 gastosPorCategoria[nombreCategoria] = 0;
             }
@@ -274,24 +276,24 @@ async function renderizarGraficoGastos() {
         const labels = Object.keys(gastosPorCategoria);
         const valores = Object.values(gastosPorCategoria);
 
-        const canvas = document.getElementById('graficoGastos');
+        const canvas = document.getElementById('graficogastos');
         if (!canvas) return;
 
         const ctx = canvas.getContext('2d');
 
-        if (miGrafico) {
-            miGrafico.destroy();
+        if (migrafico) {
+            migrafico.destroy();
         }
 
-        miGrafico = new Chart(ctx, {
+        migrafico = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Gastos (€)',
+                    label: 'Expenses (€)',
                     data: valores,
                     backgroundColor: [
-                        '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'
+                        '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'
                     ],
                     borderWidth: 1
                 }]
@@ -308,6 +310,9 @@ async function renderizarGraficoGastos() {
         });
 
     } catch (error) {
-        console.error("Error al generar el gráfico:", error.message);
+        console.error('Error generating chart:', error.message);
     }
-}renderizarGraficoGastos();
+}
+
+// Initial call for the chart
+renderizarGraficoGastos();

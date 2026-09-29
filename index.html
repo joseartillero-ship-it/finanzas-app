@@ -1,111 +1,44 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Panel de Finanzas</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-  <div class="max-w-5xl mx-auto space-y-6">
-    <div class="bg-white p-6 rounded-lg shadow-md mt-6">
-    <h3 class="text-lg font-semibold text-gray-700 mb-4">Gastos por Categoría</h3>
-    <div class="relative w-full h-64">
-        <canvas id="graficoGastos"></canvas>
-    </div>
-</div>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
 
-    <!-- Barra de Autenticación / Usuario -->
-    <div class="flex flex-wrap justify-between items-center gap-4 p-4 bg-white rounded-lg shadow">
-      <div>
-        <span id="user-email" class="font-medium text-gray-700 text-sm">Cargando usuario...</span>
-      </div>
-      <div id="auth-forms" class="flex flex-wrap gap-2">
-        <input type="email" id="email" placeholder="Email" class="p-2 border rounded text-sm">
-        <input type="password" id="password" placeholder="Contraseña" class="p-2 border rounded text-sm">
-        <button id="btn-login" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium">Iniciar Sesión</button>
-        <button id="btn-signup" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-sm font-medium">Registrarse</button>
-      </div>
-      <button id="btn-logout" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium hidden">Cerrar Sesión</button>
-    </div>
-
-    <!-- Encabezado -->
-    <header class="text-center py-2">
-      <h1 class="text-3xl font-bold text-gray-800">Panel de Finanzas Personal</h1>
+    <!-- Auth Section / Navigation Bar -->
+    <header class="bg-white shadow py-4 px-6 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-gray-800">Finance Manager</h1>
+        <div id="auth-container" class="flex items-center gap-4">
+            <!-- Dynamic Login/Logout state -->
+            <span id="user-email" class="text-sm text-gray-600"></span>
+            <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm transition">Sign Out</button>
+        </div>
     </header>
 
-    <!-- Tarjetas de Saldo -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="p-4 bg-white rounded-lg shadow border-l-4 border-green-500">
-        <p class="text-xs font-semibold text-gray-500 uppercase">Ingresos</p>
-        <p id="total-ingresos" class="text-2xl font-bold text-gray-800">0.00 €</p>
-      </div>
-      <div class="p-4 bg-white rounded-lg shadow border-l-4 border-red-500">
-        <p class="text-xs font-semibold text-gray-500 uppercase">Gastos</p>
-        <p id="total-gastos" class="text-2xl font-bold text-gray-800">0.00 €</p>
-      </div>
-      <div class="p-4 bg-white rounded-lg shadow border-l-4 border-blue-500">
-        <p class="text-xs font-semibold text-gray-500 uppercase">Saldo Total</p>
-        <p id="saldo-total" class="text-2xl font-bold text-gray-800">0.00 €</p>
-      </div>
-    </div>
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto mt-8 px-4">
+        
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Personal Finance Dashboard</h2>
 
-    <!-- Gestión y Transacciones -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      
-      <!-- Categorías -->
-      <div class="bg-white p-6 rounded-lg shadow space-y-4">
-        <h2 class="text-lg font-bold text-gray-800">Gestión de Categorías</h2>
-        <form id="form-categoria" class="flex gap-2">
-          <input type="text" id="nombre-categoria" placeholder="Nombre de categoría" required class="flex-1 p-2 border rounded text-sm">
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700">Añadir</button>
-        </form>
-        <ul id="lista-categorias" class="space-y-2 mt-4 max-h-60 overflow-y-auto"></ul>
-      </div>
-
-      <!-- Nueva Transacción -->
-      <div class="bg-white p-6 rounded-lg shadow space-y-4">
-        <h2 class="text-lg font-bold text-gray-800">Nueva Transacción</h2>
-        <form id="form-transaccion" class="space-y-3">
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Concepto</label>
-            <input type="text" id="concepto-transaccion" placeholder="Ej. Compra supermercado" required class="w-full p-2 border rounded text-sm">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Monto (€)</label>
-            <input type="number" step="0.01" id="monto-transaccion" placeholder="0.00" required class="w-full p-2 border rounded text-sm">
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Tipo</label>
-              <select id="tipo-transaccion" class="w-full p-2 border rounded text-sm">
-                <option value="Ingreso">Ingreso</option>
-                <option value="Gasto">Gasto</option>
-              </select>
+        <!-- Expense Chart Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Expenses by Category</h3>
+            <div class="relative w-full h-64">
+                <canvas id="graficoGastos"></canvas>
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Categoría</label>
-              <select id="categoria-transaccion" class="w-full p-2 border rounded text-sm">
-                <option value="">Sin categoría</option>
-              </select>
-            </div>
-          </div>
-          <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded text-sm transition">Guardar Transacción</button>
-        </form>
-      </div>
+        </div>
 
-    </div>
+        <!-- Add transaction or other app components go here -->
+    </main>
 
-    <!-- Historial de Transacciones -->
-    <div class="bg-white p-6 rounded-lg shadow space-y-4">
-      <h2 class="text-lg font-bold text-gray-800">Historial de Transacciones</h2>
-      <ul id="lista-transacciones" class="divide-y divide-gray-200"></ul>
-    </div>
-
-  </div>
-
-  <script src="app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
