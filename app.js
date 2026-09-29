@@ -239,3 +239,75 @@ actualizarUI()
 cargarCategorias()
 cargarTransaccionesBD()
 actualizarTotalesBD()
+// ... (aquí tienes todo tu código actual de app.js: la configuración de Supabase, actualizarUI, etc.)
+
+// Pega la función del gráfico al final del archivo app.js:
+let miGrafico = null;
+
+async function renderizarGraficoGastos() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('transacciones')
+            .select(`
+                monto,
+                tipo,
+                categorias (
+                    nombre
+                )
+            `)
+            .ilike('tipo', 'gasto');
+
+        if (error) throw error;
+
+        const gastosPorCategoria = {};
+        
+        data.forEach(t => {
+            const nombreCategoria = t.categorias ? t.categorias.nombre : 'Sin categoría';
+            const monto = Math.abs(Number(t.monto));
+
+            if (!gastosPorCategoria[nombreCategoria]) {
+                gastosPorCategoria[nombreCategoria] = 0;
+            }
+            gastosPorCategoria[nombreCategoria] += monto;
+        });
+
+        const labels = Object.keys(gastosPorCategoria);
+        const valores = Object.values(gastosPorCategoria);
+
+        const canvas = document.getElementById('graficoGastos');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+
+        if (miGrafico) {
+            miGrafico.destroy();
+        }
+
+        miGrafico = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Gastos (€)',
+                    data: valores,
+                    backgroundColor: [
+                        '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al generar el gráfico:", error.message);
+    }
+}renderizarGraficoGastos();

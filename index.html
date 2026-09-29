@@ -6,9 +6,16 @@
   <title>Mi Panel de Finanzas</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen p-6">
   <div class="max-w-5xl mx-auto space-y-6">
+    <div class="bg-white p-6 rounded-lg shadow-md mt-6">
+    <h3 class="text-lg font-semibold text-gray-700 mb-4">Gastos por Categoría</h3>
+    <div class="relative w-full h-64">
+        <canvas id="graficoGastos"></canvas>
+    </div>
+</div>
 
     <!-- Barra de Autenticación / Usuario -->
     <div class="flex flex-wrap justify-between items-center gap-4 p-4 bg-white rounded-lg shadow">
