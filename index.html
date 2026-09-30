@@ -34,82 +34,91 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-6xl mx-auto mt-8 px-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+<main class="max-w-6xl mx-auto mt-10 px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
 
-        <!-- Left Column: Totals & Forms -->
-        <div class="md:col-span-1 space-y-6">
-            
-            <!-- Summary Card -->
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">Summary</h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500 text-sm">Total Income:</span>
-                        <span id="total-ingresos" class="text-green-600 font-bold">0.00</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500 text-sm">Total Expenses:</span>
-                        <span id="total-gastos" class="text-red-600 font-bold">0.00</span>
-                    </div>
-                    <hr>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-700 font-medium">Balance:</span>
-                        <span id="saldo-total" class="text-gray-800 font-bold">0.00</span>
-                    </div>
+    <!-- Left Column: Totals & Forms -->
+    <div class="md:col-span-1 space-y-6">
+        
+        <!-- Summary Card -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center justify-between">
+                Financial Summary
+                <span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full font-semibold">Live</span>
+            </h3>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+                    <span class="text-gray-500 text-sm font-medium">Total Income:</span>
+                    <span id="total-ingresos" class="text-emerald-600 font-extrabold text-lg">$0.00</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+                    <span class="text-gray-500 text-sm font-medium">Total Expenses:</span>
+                    <span id="total-gastos" class="text-rose-600 font-extrabold text-lg">$0.00</span>
+                </div>
+                <div class="pt-2 border-t border-gray-100 flex justify-between items-center px-1">
+                    <span class="text-gray-700 font-bold">Net Balance:</span>
+                    <span id="saldo-total" class="text-gray-900 font-black text-xl">$0.00</span>
                 </div>
             </div>
-
-            <!-- Add Category Form -->
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">Manage Categories</h3>
-                <form id="form-categoria" class="space-y-3">
-                    <input type="text" id="nombre-categoria" placeholder="Category name" required class="w-full border rounded px-3 py-2 text-sm">
-                    <button type="submit" class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 rounded text-sm font-medium">Add Category</button>
-                </form>
-                <ul id="lista-categorias" class="mt-4 space-y-2 max-h-40 overflow-y-auto"></ul>
-            </div>
-
-            <!-- Add Transaction Form -->
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">New Transaction</h3>
-                <form id="form-transaccion" class="space-y-3">
-                    <input type="text" id="concepto-transaccion" placeholder="Concept / Description" required class="w-full border rounded px-3 py-2 text-sm">
-                    <input type="number" step="0.01" id="monto-transaccion" placeholder="Amount (€)" required class="w-full border rounded px-3 py-2 text-sm">
-                    <select id="tipo-transaccion" class="w-full border rounded px-3 py-2 text-sm">
-                        <option value="Gasto">Expense</option>
-                        <option value="Ingreso">Income</option>
-                    </select>
-                    <select id="categoria-transaccion" class="w-full border rounded px-3 py-2 text-sm">
-                        <option value="">No category</option>
-                    </select>
-                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded text-sm font-medium">Save Transaction</button>
-                </form>
-            </div>
-
         </div>
 
-        <!-- Right Column: Chart & Transaction History -->
-        <div class="md:col-span-2 space-y-6">
-            
-            <!-- Expense Chart Section -->
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">Expenses by Category</h3>
-                <div class="relative w-full h-72">
-                    <canvas id="graficogastos"></canvas>
-                </div>
-            </div>
-
-            <!-- Transaction History -->
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4">Transaction History</h3>
-                <ul id="lista-transacciones" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                    <li class="p-4 text-center text-gray-500 text-sm">No transactions recorded yet</li>
-                </ul>
-            </div>
-
+        <!-- Add Category Form -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-4">Manage Categories</h3>
+            <form id="form-categoria" class="space-y-3">
+                <input type="text" id="nombre-categoria" placeholder="Category name" required 
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <button type="submit" class="w-full bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg">
+                    Add Category
+                </button>
+            </form>
+            <ul id="lista-categorias" class="mt-4 space-y-2 max-h-40 overflow-y-auto"></ul>
         </div>
 
-    </main>
+        <!-- Add Transaction Form -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-4">New Transaction</h3>
+            <form id="form-transaccion" class="space-y-3">
+                <input type="text" id="concepto-transaccion" placeholder="Concept / Description" required 
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <input type="number" step="0.01" id="monto-transaccion" placeholder="Amount ($)" required 
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <select id="tipo-transaccion" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all bg-white">
+                    <option value="Gasto">Expense</option>
+                    <option value="Ingreso">Income</option>
+                </select>
+                <select id="categoria-transaccion" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all bg-white">
+                    <option value="">No category</option>
+                </select>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg">
+                    Save Transaction
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Right Column: Chart & Transaction History -->
+    <div class="md:col-span-2 space-y-6">
+        
+        <!-- Expense Chart Section -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-4">Expenses by Category</h3>
+            <div class="relative w-full h-80 flex items-center justify-center">
+                <canvas id="graficogastos"></canvas>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-4">Transaction History</h3>
+            <ul id="lista-transacciones" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                <li class="p-4 text-center text-gray-400 text-sm">No transactions recorded yet</li>
+            </ul>
+        </div>
+
+    </div>
+
+</main>
 
     <!-- Main JS Application Script -->
     <script src="app.js"></script>
