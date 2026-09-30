@@ -246,18 +246,24 @@ actualizarTotalesBD();
 // Render Expense Chart (Chart.js)
 let migrafico = null;
 
-async function renderizarGraficoGastos() 
-    try {
-        const { data, error } = await supabaseClient
-            .from('transacciones')
-            .select(`
-                monto,
-                tipo,
-                categorias (
-                    nombre
-                )
-            `)
-           // Objeto para guardar los totales y un mapa para saber si es Ingreso o Gasto
+async function renderizarGraficoGastos() {
+    let migrafico = null;
+
+    const { data, error } = await supabaseClient
+        .from('transacciones')
+        .select(`
+            monto,
+            tipo,
+            categorias (
+                nombre
+            )
+        `);
+
+    if (error) {
+        console.error('Error loading chart data:', error);
+        return;
+    }
+
     const totalesPorCategoria = {};
     const tipoPorCategoria = {};
 
@@ -267,7 +273,7 @@ async function renderizarGraficoGastos()
 
         if (!totalesPorCategoria[nombreCategoria]) {
             totalesPorCategoria[nombreCategoria] = 0;
-            tipoPorCategoria[nombreCategoria] = t.tipo; // Guardamos si es Gasto o Ingreso
+            tipoPorCategoria[nombreCategoria] = t.tipo;
         }
         totalesPorCategoria[nombreCategoria] += monto;
     });
@@ -275,7 +281,6 @@ async function renderizarGraficoGastos()
     const labels = Object.keys(totalesPorCategoria);
     const valores = Object.values(totalesPorCategoria);
 
-    // Asignar color verde (#10B981) si es Ingreso, o naranja/rojo si es Gasto
     const backgroundColors = labels.map(label => {
         return tipoPorCategoria[label] === 'Ingreso' ? '#10B981' : '#F59E0B';
     });
@@ -285,22 +290,22 @@ async function renderizarGraficoGastos()
 
     const ctx = canvas.getContext('2d');
 
-    if (grafico) {
-        grafico.destroy();
+    if (migrafico) {
+        migrafico.destroy();
     }
 
-    grafico = new Chart(ctx, {
+    migrafico = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: labels,
             datasets: [{
                 label: 'Transactions',
                 data: valores,
-                backgroundColor: backgroundColors, // <--- Aquí aplicamos los colores dinámicos
+                backgroundColor: backgroundColors,
                 borderWidth: 1
             }]
         },
-       options: {
+        options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -310,6 +315,4 @@ async function renderizarGraficoGastos()
             }
         }
     });
-} catch (error) {
-    console.error('Error generating chart:', error.message);
 }
