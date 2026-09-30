@@ -310,22 +310,4 @@ async function renderizarGraficoGastos() {
             }
         }
     });
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                    }
-                }
-            }
-        });
-
-    } catch (error) {
-        console.error('Error generating chart:', error.message);
     }
-}
-
-// Initial call for the chart
-renderizarGraficoGastos();
