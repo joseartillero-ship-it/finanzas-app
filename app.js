@@ -257,46 +257,59 @@ async function renderizarGraficoGastos() {
                     nombre
                 )
             `)
-            .ilike('tipo', 'gasto');
+           // Objeto para guardar los totales y un mapa para saber si es Ingreso o Gasto
+    const totalesPorCategoria = {};
+    const tipoPorCategoria = {};
 
-        if (error) throw error;
+    data.forEach(t => {
+        const nombreCategoria = (t.categorias && t.categorias.nombre) ? t.categorias.nombre : 'No category';
+        const monto = Number(t.monto);
 
-        const gastosPorCategoria = {};
-
-        data.forEach(t => {
-            const nombreCategoria = t.categorias ? t.categorias.nombre : 'No category';
-            const monto = Math.abs(Number(t.monto));
-            
-            if (!gastosPorCategoria[nombreCategoria]) {
-                gastosPorCategoria[nombreCategoria] = 0;
-            }
-            gastosPorCategoria[nombreCategoria] += monto;
-        });
-
-        const labels = Object.keys(gastosPorCategoria);
-        const valores = Object.values(gastosPorCategoria);
-
-        const canvas = document.getElementById('graficogastos');
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-
-        if (migrafico) {
-            migrafico.destroy();
+        if (!totalesPorCategoria[nombreCategoria]) {
+            totalesPorCategoria[nombreCategoria] = 0;
+            tipoPorCategoria[nombreCategoria] = t.tipo; // Guardamos si es Gasto o Ingreso
         }
+        totalesPorCategoria[nombreCategoria] += monto;
+    });
 
-        migrafico = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Expenses (€)',
-                    data: valores,
-                    backgroundColor: [
-                        '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'
-                    ],
-                    borderWidth: 1
-                }]
+    const labels = Object.keys(totalesPorCategoria);
+    const valores = Object.values(totalesPorCategoria);
+
+    // Asignar color verde (#10B981) si es Ingreso, o naranja/rojo si es Gasto
+    const backgroundColors = labels.map(label => {
+        return tipoPorCategoria[label] === 'Ingreso' ? '#10B981' : '#F59E0B';
+    });
+
+    const canvas = document.getElementById('graficogastos');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    if (grafico) {
+        grafico.destroy();
+    }
+
+    grafico = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Transactions',
+                data: valores,
+                backgroundColor: backgroundColors, // <--- Aquí aplicamos los colores dinámicos
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
             },
             options: {
                 responsive: true,
