@@ -246,7 +246,7 @@ actualizarTotalesBD();
 // Render Expense Chart (Chart.js)
 let migrafico = null;
 
-async function renderizarGraficoGastos() {
+async function renderizarGraficoGastos() 
     try {
         const { data, error } = await supabaseClient
             .from('transacciones')
@@ -300,7 +300,7 @@ async function renderizarGraficoGastos() {
                 borderWidth: 1
             }]
         },
-        options: {
+       options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -310,4 +310,6 @@ async function renderizarGraficoGastos() {
             }
         }
     });
-    }
+} catch (error) {
+    console.error('Error generating chart:', error.message);
+}
