@@ -244,11 +244,8 @@ cargarTransaccionesBD();
 actualizarTotalesBD();
 
 // Render Expense Chart (Chart.js)
-let migrafico = null;
 
 async function renderizarGraficoGastos() {
-    let migrafico = null;
-
     const { data, error } = await supabaseClient
         .from('transacciones')
         .select(`
@@ -288,13 +285,15 @@ async function renderizarGraficoGastos() {
     const canvas = document.getElementById('graficogastos');
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-
-    if (migrafico) {
-        migrafico.destroy();
+    // Destruir instancia anterior si ya existe de forma segura
+    const chartInstance = Chart.getChart(canvas);
+    if (chartInstance) {
+        chartInstance.destroy();
     }
 
-    migrafico = new Chart(ctx, {
+    const ctx = canvas.getContext('2d');
+
+    new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: labels,
