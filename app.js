@@ -247,49 +247,26 @@ actualizarTotalesBD();
 
 async function renderizarGraficoGastos() {
     const { data, error } = await supabaseClient
-        .from('transacciones')
-        .select(`
-            monto,
-            tipo,
-            categorias (
-                nombre
-            )
-        `);
+        .from('resumen_por_categoria')
+        .select('categoria, total_gastado')
+        .order('total_gastado', { ascending: false });
 
     if (error) {
         console.error('Error loading chart data:', error);
         return;
     }
 
-    const totalesPorCategoria = {};
-    const tipoPorCategoria = {};
+    const labels = data.map(d => d.categoria);
+    const valores = data.map(d => Number(d.total_gastado));
 
-    data.forEach(t => {
-        const nombreCategoria = (t.categorias && t.categorias.nombre) ? t.categorias.nombre : 'No category';
-        const monto = Number(t.monto);
-
-        if (!totalesPorCategoria[nombreCategoria]) {
-            totalesPorCategoria[nombreCategoria] = 0;
-            tipoPorCategoria[nombreCategoria] = t.tipo;
-        }
-        totalesPorCategoria[nombreCategoria] += monto;
-    });
-
-    const labels = Object.keys(totalesPorCategoria);
-    const valores = Object.values(totalesPorCategoria);
-
-    const backgroundColors = labels.map(label => {
-        return tipoPorCategoria[label] === 'Ingreso' ? '#10B981' : '#F59E0B';
-    });
+    const palette = ['#F59E0B', '#10B981', '#3B82F6', '#EF4444', '#8B5CF6', '#EC4899'];
+    const backgroundColors = labels.map((_, i) => palette[i % palette.length]);
 
     const canvas = document.getElementById('graficogastos');
     if (!canvas) return;
 
-    // Destruir instancia anterior si ya existe de forma segura
     const chartInstance = Chart.getChart(canvas);
-    if (chartInstance) {
-        chartInstance.destroy();
-    }
+    if (chartInstance) chartInstance.destroy();
 
     const ctx = canvas.getContext('2d');
 
@@ -298,19 +275,17 @@ async function renderizarGraficoGastos() {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Transactions',
+                label: 'Expenses',
                 data: valores,
                 backgroundColor: backgroundColors,
                 borderWidth: 1
             }]
         },
-     options: {
+        options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'bottom'
-                }
+                legend: { position: 'bottom' }
             }
         }
     });
