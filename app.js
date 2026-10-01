@@ -131,13 +131,13 @@ async function cargarTransaccionesBD() {
         .order('created_at', { ascending: false });
 
     if (error) return console.error('Error loading transactions:', error);
-
+    
     if (!data || data.length === 0) {
-        lista.innerHTML = '<li class="p-4 text-center text-gray-500 text-sm">No transactions recorded yet</li>';
+        lista.innerHTML = '<p class="p-4 text-center text-gray-500 text-sm">No transactions recorded yet.</p>';
         return;
     }
 
-   data.forEach((t) => {
+    data.forEach((t) => {
         const li = document.createElement('li');
         li.className = 'py-3 flex justify-between items-center border-b border-gray-100';
         const esIngreso = t.tipo === 'Ingreso';
@@ -158,6 +158,7 @@ async function cargarTransaccionesBD() {
         `;
         lista.appendChild(li);
     });
+}
 // Delete Transaction
 window.eliminarTransaccion = async (id) => {
     const { error } = await supabaseClient.from('transacciones').delete().eq('id', id);
@@ -303,12 +304,12 @@ async function renderizarGraficoGastos() {
                 borderWidth: 1
             }]
         },
-        options: {
+     options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom',
+                    position: 'bottom'
                 }
             }
         }
