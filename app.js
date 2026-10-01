@@ -137,28 +137,27 @@ async function cargarTransaccionesBD() {
         return;
     }
 
-    data.forEach((t) => {
+   data.forEach((t) => {
         const li = document.createElement('li');
         li.className = 'py-3 flex justify-between items-center border-b border-gray-100';
         const esIngreso = t.tipo === 'Ingreso';
         const color = esIngreso ? 'text-green-600' : 'text-red-600';
         const signo = esIngreso ? '+' : '-';
         const catNombre = t.categorias ? t.categorias.nombre : 'No category';
+        const fechaTransaccion = t.fecha ? new Date(t.fecha).toLocaleDateString() : '';
 
         li.innerHTML = `
             <div>
                 <p class="font-medium text-gray-800 text-sm">${t.concepto}</p>
-                <p class="text-xs text-gray-400">${catNombre}</p>
+                <p class="text-xs text-gray-400">${catNombre} <span class="ml-2 text-gray-300">${fechaTransaccion}</span></p>
             </div>
             <div class="flex items-center gap-3">
-                <span class="font-bold text-sm ${color}">${signo}${parseFloat(t.monto).toFixed(2)}</span>
-                <button onclick="eliminarTransaccion('${t.id}')" class="text-gray-400 hover:text-red-600 font-bold">Delete</button>
+                <span class="font-bold text-sm ${color}">${signo}$</span>
+                <button onclick="eliminarTransaccion('${t.id}')" class="text-gray-400 hover:text-red-600 text-sm">🗑️</button>
             </div>
         `;
         lista.appendChild(li);
     });
-}
-
 // Delete Transaction
 window.eliminarTransaccion = async (id) => {
     const { error } = await supabaseClient.from('transacciones').delete().eq('id', id);
