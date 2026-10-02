@@ -152,7 +152,7 @@ async function cargarTransaccionesBD() {
                 <p class="text-xs text-gray-400">${catNombre} <span class="ml-2 text-gray-300">${fechaTransaccion}</span></p>
             </div>
             <div class="flex items-center gap-3">
-                <span class="font-bold text-sm ${color}">${signo}$</span>
+                <span class="font-bold text-sm ${color}">${signo}${Number(t.monto).toFixed(2)} $</span>
                 <button onclick="eliminarTransaccion('${t.id}')" class="text-gray-400 hover:text-red-600 text-sm">🗑️</button>
             </div>
         `;
@@ -223,9 +223,9 @@ async function actualizarTotalesBD() {
     const totalGastosEl = document.getElementById('total-gastos');
     const saldoTotalEl = document.getElementById('saldo-total');
 
-    if (totalIngresosEl) totalIngresosEl.textContent = `${ingresos.toFixed(2)}`;
-    if (totalGastosEl) totalGastosEl.textContent = `${gastos.toFixed(2)}`;
-    if (saldoTotalEl) saldoTotalEl.textContent = `${saldo.toFixed(2)}`;
+    if (totalIngresosEl) totalIngresosEl.textContent = `${Number(ingresos).toFixed(2)} $`;
+    if (totalGastosEl) totalGastosEl.textContent = `${Number(gastos).toFixed(2)} $`;
+    if (saldoTotalEl) saldoTotalEl.textContent = `${Number(saldo).toFixed(2)} $`;
 }
 
 // Listen to Auth State Changes
