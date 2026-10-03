@@ -74,7 +74,7 @@ async function cargarCategorias() {
             const li = document.createElement('li');
             li.className = 'flex justify-between items-center p-2 bg-gray-50 rounded border text-sm';
             li.innerHTML = `
-                <span class="text-gray-700">${cat.nombre}</span>
+                <span class="text-gray-700">${escaparHTML(cat.nombre)}</span>
                 <button onclick="eliminarCategoria('${cat.id}')" class="text-red-500 hover:text-red-700 font-bold">Delete</button>
             `;
             lista.appendChild(li);
@@ -118,7 +118,12 @@ document.getElementById('form-categoria')?.addEventListener('submit', async (e) 
         cargarCategorias();
     }
 });
-
+// Escape user text before inserting it into HTML (prevents XSS)
+function escaparHTML(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto ?? '';
+    return div.innerHTML;
+}
 // Load Transactions
 async function cargarTransaccionesBD() {
     const lista = document.getElementById('lista-transacciones');
@@ -148,8 +153,8 @@ async function cargarTransaccionesBD() {
 
         li.innerHTML = `
             <div>
-                <p class="font-medium text-gray-800 text-sm">${t.concepto}</p>
-                <p class="text-xs text-gray-400">${catNombre} <span class="ml-2 text-gray-300">${fechaTransaccion}</span></p>
+                <p class="font-medium text-gray-800 text-sm">${escaparHTML(t.concepto)}</p>
+                <p class="text-xs text-gray-400">${escaparHTML(catNombre)} <span class="ml-2 text-gray-300">${fechaTransaccion}</span></p>
             </div>
             <div class="flex items-center gap-3">
                 <span class="font-bold text-sm ${color}">${signo}${Number(t.monto).toFixed(2)} $</span>
@@ -184,12 +189,14 @@ document.getElementById('form-transaccion')?.addEventListener('submit', async (e
     const monto = parseFloat(document.getElementById('monto-transaccion').value);
     const tipo = document.getElementById('tipo-transaccion').value;
     const categoria_id = document.getElementById('categoria-transaccion').value || null;
+    const fecha = document.getElementById('fecha-transaccion').value;
 
     const { error } = await supabaseClient.from('transacciones').insert({
         concepto,
         monto,
         tipo,
         categoria_id,
+        fecha,
         user_id: user.id
     });
 
