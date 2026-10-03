@@ -2,6 +2,8 @@
 
 A minimalist web app for tracking personal finances in real time. Users can log income and expenses, organize them into custom categories, and see where their money goes with an interactive chart.
 
+🔗 **Live Demo:** [finanzas-app-silk-sigma.vercel.app](https://finanzas-app-silk-sigma.vercel.app/)
+
 ## 🛠️ Tech Stack
 
 - **Frontend:** HTML5, Tailwind CSS, vanilla JavaScript (ES6+)
