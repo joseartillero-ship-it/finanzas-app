@@ -115,7 +115,17 @@
 
         <!-- Transaction History -->
         <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
-            <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-4">Transaction History</h3>
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+                <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider">Transaction History</h3>
+                <div class="flex items-center gap-2">
+                    <input type="month" id="filtro-mes" title="Filter by month"
+                        class="border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <button type="button" id="btn-todos-meses"
+                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all">
+                        All
+                    </button>
+                </div>
+            </div>
             <ul id="lista-transacciones" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
                 <li class="p-4 text-center text-gray-400 text-sm">No transactions recorded yet</li>
             </ul>

@@ -124,6 +124,30 @@ function escaparHTML(texto) {
     div.textContent = texto ?? '';
     return div.innerHTML;
 }
+// Month filter: if a month is selected ("YYYY-MM"), keep only transactions dated in that month
+function filtrarPorMes(query) {
+    const mes = document.getElementById('filtro-mes')?.value;
+    if (!mes) return query;
+
+    const [anio, m] = mes.split('-').map(Number);
+    const inicio = `${mes}-01`;
+    const fin = m === 12 ? `${anio + 1}-01-01` : `${anio}-${String(m + 1).padStart(2, '0')}-01`;
+    return query.gte('fecha', inicio).lt('fecha', fin);
+}
+
+// Reload everything that depends on the month filter
+function refrescarDatosFiltrados() {
+    cargarTransaccionesBD();
+    actualizarTotalesBD();
+    renderizarGraficoGastos();
+}
+
+document.getElementById('filtro-mes')?.addEventListener('change', refrescarDatosFiltrados);
+document.getElementById('btn-todos-meses')?.addEventListener('click', () => {
+    document.getElementById('filtro-mes').value = '';
+    refrescarDatosFiltrados();
+});
+
 // Transactions currently shown, by id (used to fill the form when editing)
 let transaccionesPorId = {};
 // Id of the transaction being edited (null = creating a new one)
@@ -135,16 +159,19 @@ async function cargarTransaccionesBD() {
     if (!lista) return;
     lista.innerHTML = '';
 
-    const { data, error } = await supabaseClient
+    const { data, error } = await filtrarPorMes(supabaseClient
         .from('transacciones')
-        .select('*, categorias(nombre)')
+        .select('*, categorias(nombre)'))
         .order('fecha', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
     if (error) return console.error('Error loading transactions:', error);
     
     if (!data || data.length === 0) {
-        lista.innerHTML = '<p class="p-4 text-center text-gray-500 text-sm">No transactions recorded yet.</p>';
+        const mensaje = document.getElementById('filtro-mes')?.value
+            ? 'No transactions in this month.'
+            : 'No transactions recorded yet.';
+        lista.innerHTML = `<p class="p-4 text-center text-gray-500 text-sm">${mensaje}</p>`;
         return;
     }
 
@@ -261,7 +288,7 @@ document.getElementById('form-transaccion')?.addEventListener('submit', async (e
 
 // Update Totals (Income, Expenses, Balance)
 async function actualizarTotalesBD() {
-    const { data, error } = await supabaseClient.from('transacciones').select('monto, tipo');
+    const { data, error } = await filtrarPorMes(supabaseClient.from('transacciones').select('monto, tipo'));
     if (error) return console.error('Error fetching totals:', error);
 
     let ingresos = 0;
@@ -301,11 +328,35 @@ actualizarTotalesBD();
 
 // Render Expense Chart (Chart.js)
 
+// Expenses per category: from the view for all months, or summed here for the selected month
+async function obtenerGastosPorCategoria() {
+    if (!document.getElementById('filtro-mes')?.value) {
+        return supabaseClient
+            .from('resumen_por_categoria')
+            .select('categoria, total_gastado')
+            .order('total_gastado', { ascending: false });
+    }
+
+    const { data, error } = await filtrarPorMes(supabaseClient
+        .from('transacciones')
+        .select('monto, categorias(nombre)')
+        .eq('tipo', 'Gasto'));
+    if (error) return { data: null, error };
+
+    const totales = {};
+    data.forEach((t) => {
+        const categoria = t.categorias ? t.categorias.nombre : 'No category';
+        totales[categoria] = (totales[categoria] || 0) + (parseFloat(t.monto) || 0);
+    });
+
+    const resumen = Object.entries(totales)
+        .map(([categoria, total_gastado]) => ({ categoria, total_gastado }))
+        .sort((a, b) => b.total_gastado - a.total_gastado);
+    return { data: resumen, error: null };
+}
+
 async function renderizarGraficoGastos() {
-    const { data, error } = await supabaseClient
-        .from('resumen_por_categoria')
-        .select('categoria, total_gastado')
-        .order('total_gastado', { ascending: false });
+    const { data, error } = await obtenerGastosPorCategoria();
 
     if (error) {
         console.error('Error loading chart data:', error);
