@@ -344,8 +344,10 @@ async function obtenerGastosPorCategoria() {
     if (error) return { data: null, error };
 
     const totales = {};
+    // Same as the view: expenses without a category are not shown in the chart
     data.forEach((t) => {
-        const categoria = t.categorias ? t.categorias.nombre : 'No category';
+        if (!t.categorias) return;
+        const categoria = t.categorias.nombre;
         totales[categoria] = (totales[categoria] || 0) + (parseFloat(t.monto) || 0);
     });
 
