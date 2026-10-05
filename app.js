@@ -124,6 +124,11 @@ function escaparHTML(texto) {
     div.textContent = texto ?? '';
     return div.innerHTML;
 }
+// Transactions currently shown, by id (used to fill the form when editing)
+let transaccionesPorId = {};
+// Id of the transaction being edited (null = creating a new one)
+let editandoId = null;
+
 // Load Transactions
 async function cargarTransaccionesBD() {
     const lista = document.getElementById('lista-transacciones');
@@ -143,7 +148,9 @@ async function cargarTransaccionesBD() {
         return;
     }
 
+    transaccionesPorId = {};
     data.forEach((t) => {
+        transaccionesPorId[t.id] = t;
         const li = document.createElement('li');
         li.className = 'py-3 flex justify-between items-center border-b border-gray-100';
         const esIngreso = t.tipo === 'Ingreso';
@@ -159,17 +166,46 @@ async function cargarTransaccionesBD() {
             </div>
             <div class="flex items-center gap-3">
                 <span class="font-bold text-sm ${color}">${signo}${Number(t.monto).toFixed(2)} $</span>
-                <button onclick="eliminarTransaccion('${t.id}')" class="text-gray-400 hover:text-red-600 text-sm">🗑️</button>
+                <button onclick="editarTransaccion('${t.id}')" class="text-gray-400 hover:text-blue-600 text-sm" title="Edit">✏️</button>
+                <button onclick="eliminarTransaccion('${t.id}')" class="text-gray-400 hover:text-red-600 text-sm" title="Delete">🗑️</button>
             </div>
         `;
         lista.appendChild(li);
     });
 }
+// Edit Transaction: load its data into the form
+window.editarTransaccion = (id) => {
+    const t = transaccionesPorId[id];
+    if (!t) return;
+
+    editandoId = id;
+    document.getElementById('concepto-transaccion').value = t.concepto ?? '';
+    document.getElementById('monto-transaccion').value = t.monto;
+    document.getElementById('fecha-transaccion').value = (t.fecha ?? '').slice(0, 10);
+    document.getElementById('tipo-transaccion').value = t.tipo;
+    document.getElementById('categoria-transaccion').value = t.categoria_id ?? '';
+
+    document.getElementById('titulo-form-transaccion').textContent = 'Edit Transaction';
+    document.getElementById('btn-guardar-transaccion').textContent = 'Update Transaction';
+    document.getElementById('btn-cancelar-edicion').classList.remove('hidden');
+    document.getElementById('form-transaccion').scrollIntoView({ behavior: 'smooth' });
+};
+
+// Cancel editing: back to "new transaction" mode
+window.cancelarEdicion = () => {
+    editandoId = null;
+    document.getElementById('form-transaccion').reset();
+    document.getElementById('titulo-form-transaccion').textContent = 'New Transaction';
+    document.getElementById('btn-guardar-transaccion').textContent = 'Save Transaction';
+    document.getElementById('btn-cancelar-edicion').classList.add('hidden');
+};
+
 // Delete Transaction
 window.eliminarTransaccion = async (id) => {
     const { error } = await supabaseClient.from('transacciones').delete().eq('id', id);
     if (error) console.error('Error deleting transaction:', error);
     else {
+        if (id === editandoId) cancelarEdicion();
         cargarTransaccionesBD();
         actualizarTotalesBD();
         renderizarGraficoGastos();
@@ -192,23 +228,35 @@ document.getElementById('form-transaccion')?.addEventListener('submit', async (e
     const categoria_id = document.getElementById('categoria-transaccion').value || null;
     const fecha = document.getElementById('fecha-transaccion').value;
 
-    const { error } = await supabaseClient.from('transacciones').insert({
-        concepto,
-        monto,
-        tipo,
-        categoria_id,
-        fecha,
-        user_id: user.id
-    });
+    const datos = { concepto, monto, tipo, categoria_id, fecha };
 
-    if (error) {
-        alert('Error saving transaction: ' + error.message);
+    if (editandoId) {
+        // Update the existing transaction
+        const { data, error } = await supabaseClient
+            .from('transacciones')
+            .update(datos)
+            .eq('id', editandoId)
+            .select();
+
+        if (error) return alert('Error updating transaction: ' + error.message);
+        if (!data || data.length === 0) {
+            return alert('The transaction was not updated. Check that the "transacciones" table has an UPDATE policy in Supabase.');
+        }
+        cancelarEdicion();
     } else {
+        // Create a new transaction
+        const { error } = await supabaseClient.from('transacciones').insert({
+            ...datos,
+            user_id: user.id
+        });
+
+        if (error) return alert('Error saving transaction: ' + error.message);
         e.target.reset();
-        cargarTransaccionesBD();
-        actualizarTotalesBD();
-        renderizarGraficoGastos();
     }
+
+    cargarTransaccionesBD();
+    actualizarTotalesBD();
+    renderizarGraficoGastos();
 });
 
 // Update Totals (Income, Expenses, Balance)
