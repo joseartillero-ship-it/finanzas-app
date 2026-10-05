@@ -20,6 +20,9 @@ A minimalist web app for tracking personal finances in real time. Users can log 
 - **Custom categories:** create and delete your own categories to classify transactions.
 - **Live financial summary:** total income, total expenses and net balance, updated after every change.
 - **Expenses by category chart:** a doughnut chart fed by a PostgreSQL view (`resumen_por_categoria`) that groups spending per category.
+- **Monthly budgets:** set a spending limit per category and track it with a progress bar (green, amber when close, red when over budget).
+- **Month filter:** view transactions, totals, chart and budgets for a specific month.
+- **Edit transactions:** update any transaction from the history list.
 - **XSS protection:** user-entered text is escaped before being rendered as HTML.
 
 ## 🗄️ Database
@@ -28,6 +31,7 @@ A minimalist web app for tracking personal finances in real time. Users can log 
 |---|---|
 | `transacciones` | Each income or expense: concept, amount, type, date, category and owner |
 | `categorias` | User-defined categories |
+| `presupuestos` | Monthly spending limit per category (one per category and user) |
 | `resumen_por_categoria` | View that sums expenses per category for the chart |
 
 ## ⚙️ Running Locally

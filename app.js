@@ -31,9 +31,7 @@ document.getElementById('btn-login')?.addEventListener('click', async () => {
     else {
         actualizarUI();
         cargarCategorias();
-        cargarTransaccionesBD();
-        actualizarTotalesBD();
-        renderizarGraficoGastos();
+        refrescarDatosFiltrados();
     }
 });
 
@@ -49,9 +47,7 @@ document.getElementById('btn-logout')?.addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
     actualizarUI();
     cargarCategorias();
-    cargarTransaccionesBD();
-    actualizarTotalesBD();
-    renderizarGraficoGastos();
+    refrescarDatosFiltrados();
 });
 
 // Load Categories
@@ -65,9 +61,11 @@ async function cargarCategorias() {
 
     const lista = document.getElementById('lista-categorias');
     const selectCategoria = document.getElementById('categoria-transaccion');
+    const selectPresupuesto = document.getElementById('categoria-presupuesto');
 
     if (lista) lista.innerHTML = '';
     if (selectCategoria) selectCategoria.innerHTML = '<option value="">No category</option>';
+    if (selectPresupuesto) selectPresupuesto.innerHTML = '<option value="">Choose a category</option>';
 
     data?.forEach((cat) => {
         if (lista) {
@@ -86,6 +84,13 @@ async function cargarCategorias() {
             option.textContent = cat.nombre;
             selectCategoria.appendChild(option);
         }
+
+        if (selectPresupuesto) {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = cat.nombre;
+            selectPresupuesto.appendChild(option);
+        }
     });
 }
 
@@ -96,6 +101,7 @@ window.eliminarCategoria = async (id) => {
         alert('Could not delete category: ' + error.message);
     } else {
         cargarCategorias();
+        cargarPresupuestos();
     }
 };
 
@@ -124,23 +130,143 @@ function escaparHTML(texto) {
     div.textContent = texto ?? '';
     return div.innerHTML;
 }
+// First day of a month ("YYYY-MM") and first day of the next one
+function rangoMes(mes) {
+    const [anio, m] = mes.split('-').map(Number);
+    const inicio = `${mes}-01`;
+    const fin = m === 12 ? `${anio + 1}-01-01` : `${anio}-${String(m + 1).padStart(2, '0')}-01`;
+    return [inicio, fin];
+}
+
+// Current month as "YYYY-MM"
+function mesActual() {
+    const hoy = new Date();
+    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+}
+
 // Month filter: if a month is selected ("YYYY-MM"), keep only transactions dated in that month
 function filtrarPorMes(query) {
     const mes = document.getElementById('filtro-mes')?.value;
     if (!mes) return query;
 
-    const [anio, m] = mes.split('-').map(Number);
-    const inicio = `${mes}-01`;
-    const fin = m === 12 ? `${anio + 1}-01-01` : `${anio}-${String(m + 1).padStart(2, '0')}-01`;
+    const [inicio, fin] = rangoMes(mes);
     return query.gte('fecha', inicio).lt('fecha', fin);
 }
 
-// Reload everything that depends on the month filter
+// Reload everything that depends on the transactions or the month filter
 function refrescarDatosFiltrados() {
     cargarTransaccionesBD();
     actualizarTotalesBD();
     renderizarGraficoGastos();
+    cargarPresupuestos();
 }
+
+// Load Budgets: spending vs. limit for the filtered month (or the current month when showing all)
+async function cargarPresupuestos() {
+    const lista = document.getElementById('lista-presupuestos');
+    if (!lista) return;
+
+    const mes = document.getElementById('filtro-mes')?.value || mesActual();
+    const [inicio, fin] = rangoMes(mes);
+
+    const etiqueta = document.getElementById('mes-presupuestos');
+    if (etiqueta) {
+        const [anio, m] = mes.split('-').map(Number);
+        etiqueta.textContent = new Date(anio, m - 1, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    }
+
+    const [presupuestosRes, gastosRes] = await Promise.all([
+        supabaseClient.from('presupuestos').select('id, limite, categoria_id, categorias(nombre)'),
+        supabaseClient.from('transacciones')
+            .select('monto, categoria_id')
+            .eq('tipo', 'Gasto')
+            .gte('fecha', inicio)
+            .lt('fecha', fin)
+    ]);
+
+    if (presupuestosRes.error) return console.error('Error loading budgets:', presupuestosRes.error);
+    if (gastosRes.error) return console.error('Error loading budget spending:', gastosRes.error);
+
+    // Total spent per category this month
+    const gastadoPorCategoria = {};
+    gastosRes.data.forEach((t) => {
+        if (!t.categoria_id) return;
+        gastadoPorCategoria[t.categoria_id] = (gastadoPorCategoria[t.categoria_id] || 0) + (parseFloat(t.monto) || 0);
+    });
+
+    lista.innerHTML = '';
+    if (presupuestosRes.data.length === 0) {
+        lista.innerHTML = '<li class="text-center text-gray-500 text-sm">No budgets yet. Choose a category and set a monthly limit.</li>';
+        return;
+    }
+
+    const presupuestos = presupuestosRes.data
+        .map((p) => ({ ...p, nombre: p.categorias ? p.categorias.nombre : '' }))
+        .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    presupuestos.forEach((p) => {
+        const limite = Number(p.limite);
+        const gastado = gastadoPorCategoria[p.categoria_id] || 0;
+        const porcentaje = (gastado / limite) * 100;
+
+        // Green under 80%, amber from 80% to 100%, red when over budget
+        let colorBarra = 'bg-emerald-500';
+        let colorTexto = 'text-emerald-600';
+        if (porcentaje > 100) {
+            colorBarra = 'bg-red-500';
+            colorTexto = 'text-red-600';
+        } else if (porcentaje >= 80) {
+            colorBarra = 'bg-amber-500';
+            colorTexto = 'text-amber-600';
+        }
+
+        const restante = limite - gastado;
+        const mensaje = restante >= 0
+            ? `${restante.toFixed(2)} $ left`
+            : `Over budget by ${Math.abs(restante).toFixed(2)} $`;
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <div class="flex justify-between items-center text-sm mb-1">
+                <span class="font-medium text-gray-700">${escaparHTML(p.nombre)}</span>
+                <div class="flex items-center gap-3">
+                    <span class="font-semibold ${colorTexto}">${gastado.toFixed(2)} / ${limite.toFixed(2)} $</span>
+                    <button onclick="eliminarPresupuesto('${p.id}')" class="text-gray-400 hover:text-red-600 text-sm" title="Delete budget">🗑️</button>
+                </div>
+            </div>
+            <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all ${colorBarra}" style="width: ${Math.min(porcentaje, 100)}%"></div>
+            </div>
+            <p class="text-xs mt-1 ${restante >= 0 ? 'text-gray-400' : 'text-red-500 font-semibold'}">${mensaje}</p>
+        `;
+        lista.appendChild(li);
+    });
+}
+
+// Set Budget: creates it, or updates the limit if the category already has one
+document.getElementById('form-presupuesto')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return alert('You must sign in to set budgets.');
+
+    const categoria_id = document.getElementById('categoria-presupuesto').value;
+    const limite = parseFloat(document.getElementById('limite-presupuesto').value);
+
+    const { error } = await supabaseClient
+        .from('presupuestos')
+        .upsert({ user_id: user.id, categoria_id, limite }, { onConflict: 'user_id,categoria_id' });
+
+    if (error) return alert('Error saving budget: ' + error.message);
+    e.target.reset();
+    cargarPresupuestos();
+});
+
+// Delete Budget
+window.eliminarPresupuesto = async (id) => {
+    const { error } = await supabaseClient.from('presupuestos').delete().eq('id', id);
+    if (error) return alert('Could not delete budget: ' + error.message);
+    cargarPresupuestos();
+};
 
 document.getElementById('filtro-mes')?.addEventListener('change', refrescarDatosFiltrados);
 document.getElementById('btn-todos-meses')?.addEventListener('click', () => {
@@ -233,9 +359,7 @@ window.eliminarTransaccion = async (id) => {
     if (error) console.error('Error deleting transaction:', error);
     else {
         if (id === editandoId) cancelarEdicion();
-        cargarTransaccionesBD();
-        actualizarTotalesBD();
-        renderizarGraficoGastos();
+        refrescarDatosFiltrados();
     }
 };
 
@@ -281,9 +405,7 @@ document.getElementById('form-transaccion')?.addEventListener('submit', async (e
         e.target.reset();
     }
 
-    cargarTransaccionesBD();
-    actualizarTotalesBD();
-    renderizarGraficoGastos();
+    refrescarDatosFiltrados();
 });
 
 // Update Totals (Income, Expenses, Balance)
@@ -315,9 +437,7 @@ async function actualizarTotalesBD() {
 supabaseClient.auth.onAuthStateChange(() => {
     actualizarUI();
     cargarCategorias();
-    cargarTransaccionesBD();
-    actualizarTotalesBD();
-    renderizarGraficoGastos();
+    refrescarDatosFiltrados();
 });
 
 // Initial Load

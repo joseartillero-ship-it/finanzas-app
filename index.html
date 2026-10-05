@@ -113,6 +113,26 @@
             </div>
         </div>
 
+        <!-- Monthly Budgets -->
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider">Monthly Budgets</h3>
+                <span id="mes-presupuestos" class="text-sm text-gray-400"></span>
+            </div>
+            <form id="form-presupuesto" class="flex flex-col sm:flex-row gap-2 mb-5">
+                <select id="categoria-presupuesto" required
+                    class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all bg-white">
+                    <option value="">Choose a category</option>
+                </select>
+                <input type="number" step="0.01" min="0.01" id="limite-presupuesto" placeholder="Monthly limit ($)" required
+                    class="sm:w-44 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <button type="submit" class="bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg">
+                    Set Budget
+                </button>
+            </form>
+            <ul id="lista-presupuestos" class="space-y-4"></ul>
+        </div>
+
         <!-- Transaction History -->
         <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
             <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
