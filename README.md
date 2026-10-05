@@ -4,6 +4,8 @@ A minimalist web app for tracking personal finances in real time. Users can log 
 
 🔗 **Live Demo:** [finanzas-app-silk-sigma.vercel.app](https://finanzas-app-silk-sigma.vercel.app/)
 
+![Dashboard screenshot](screenshot.png)
+
 ## 🛠️ Tech Stack
 
 - **Frontend:** HTML5, Tailwind CSS, vanilla JavaScript (ES6+)
