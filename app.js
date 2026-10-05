@@ -133,6 +133,7 @@ async function cargarTransaccionesBD() {
     const { data, error } = await supabaseClient
         .from('transacciones')
         .select('*, categorias(nombre)')
+        .order('fecha', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
     if (error) return console.error('Error loading transactions:', error);
