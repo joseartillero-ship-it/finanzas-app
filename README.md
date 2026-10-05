@@ -23,6 +23,7 @@ A minimalist web app for tracking personal finances in real time. Users can log 
 - **Monthly budgets:** set a spending limit per category and track it with a progress bar (green, amber when close, red when over budget).
 - **Month filter:** view transactions, totals, chart and budgets for a specific month.
 - **Edit transactions:** update any transaction from the history list.
+- **CSV export:** download the transactions shown (all or a single month) as a CSV file ready for Excel.
 - **XSS protection:** user-entered text is escaped before being rendered as HTML.
 
 ## 🗄️ Database

@@ -326,6 +326,46 @@ async function cargarTransaccionesBD() {
         lista.appendChild(li);
     });
 }
+// Export the transactions currently shown to a CSV file (Spanish Excel format: ";" separator, decimal comma)
+function exportarCSV() {
+    const transacciones = Object.values(transaccionesPorId);
+    if (transacciones.length === 0) return alert('There are no transactions to export.');
+
+    // Quote every field; prefix text that Excel would run as a formula (=, +, -, @)
+    const campo = (valor, esTexto = true) => {
+        let texto = String(valor ?? '');
+        if (esTexto && /^[=+\-@]/.test(texto)) texto = "'" + texto;
+        return `"${texto.replace(/"/g, '""')}"`;
+    };
+
+    const filas = [['Date', 'Concept', 'Type', 'Category', 'Amount'].map((c) => campo(c)).join(';')];
+    transacciones.forEach((t) => {
+        const [anio, mes, dia] = (t.fecha ?? '').slice(0, 10).split('-');
+        const fecha = t.fecha ? `${dia}/${mes}/${anio}` : '';
+        const esIngreso = t.tipo === 'Ingreso';
+        const importe = (esIngreso ? 1 : -1) * Number(t.monto);
+
+        filas.push([
+            campo(fecha),
+            campo(t.concepto),
+            campo(esIngreso ? 'Income' : 'Expense'),
+            campo(t.categorias ? t.categorias.nombre : 'No category'),
+            campo(importe.toFixed(2).replace('.', ','), false)
+        ].join(';'));
+    });
+
+    // "﻿" tells Excel the file is UTF-8, so accents display correctly
+    const blob = new Blob(['﻿' + filas.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const mesFiltro = document.getElementById('filtro-mes')?.value;
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = `transacciones-${mesFiltro || 'todas'}.csv`;
+    enlace.click();
+    setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
+}
+
+document.getElementById('btn-exportar-csv')?.addEventListener('click', exportarCSV);
+
 // Edit Transaction: load its data into the form
 window.editarTransaccion = (id) => {
     const t = transaccionesPorId[id];
