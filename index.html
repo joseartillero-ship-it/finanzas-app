@@ -11,20 +11,26 @@
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="icon" href="data:,">
+    <style>
+        /* iPhone zooms in on inputs with text smaller than 16px; keep them at 16px on small screens */
+        @media (max-width: 640px) {
+            input, select { font-size: 16px !important; }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
 
     <!-- Auth Section / Navigation Bar -->
-    <header class="bg-white shadow py-4 px-6 flex justify-between items-center">
+    <header class="bg-white shadow py-4 px-4 sm:px-6 flex flex-col lg:flex-row gap-3 lg:justify-between lg:items-center">
         <h1 class="text-xl font-bold text-gray-800">Finance Manager</h1>
-        <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-4">
             <!-- Dynamic Login/Logout state -->
-            <span id="user-email" class="text-sm text-gray-600">Sign in or register to save your data</span>
-            
+            <span id="user-email" class="text-sm text-gray-600 break-all">Sign in or register to save your data</span>
+
             <!-- Auth Forms / Inputs -->
-            <div id="auth-forms" class="flex items-center gap-2">
-                <input type="email" id="email" placeholder="Email" class="border rounded px-2 py-1 text-sm">
-                <input type="password" id="password" placeholder="Password" class="border rounded px-2 py-1 text-sm">
+            <div id="auth-forms" class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <input type="email" id="email" placeholder="Email" class="flex-1 min-w-0 sm:flex-none border rounded px-2 py-1 text-sm">
+                <input type="password" id="password" placeholder="Password" class="flex-1 min-w-0 sm:flex-none border rounded px-2 py-1 text-sm">
                 <button id="btn-login" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium">Sign In</button>
                 <button id="btn-signup" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1 rounded text-sm font-medium">Register</button>
             </div>
@@ -34,7 +40,7 @@
     </header>
 
     <!-- Main Content -->
-<main class="max-w-6xl mx-auto mt-10 px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+<main class="max-w-6xl mx-auto mt-6 sm:mt-10 px-4 pb-10 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
 
     <!-- Left Column: Totals & Forms -->
     <div class="md:col-span-1 space-y-6">

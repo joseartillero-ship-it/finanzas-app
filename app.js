@@ -227,11 +227,11 @@ async function cargarPresupuestos() {
 
         const li = document.createElement('li');
         li.innerHTML = `
-            <div class="flex justify-between items-center text-sm mb-1">
-                <span class="font-medium text-gray-700">${escaparHTML(p.nombre)}</span>
-                <div class="flex items-center gap-3">
-                    <span class="font-semibold ${colorTexto}">${gastado.toFixed(2)} / ${limite.toFixed(2)} $</span>
-                    <button onclick="eliminarPresupuesto('${p.id}')" class="text-gray-400 hover:text-red-600 text-sm" title="Delete budget">🗑️</button>
+            <div class="flex justify-between items-center gap-3 text-sm mb-1">
+                <span class="font-medium text-gray-700 min-w-0 break-words">${escaparHTML(p.nombre)}</span>
+                <div class="flex items-center gap-1 shrink-0">
+                    <span class="font-semibold whitespace-nowrap ${colorTexto}">${gastado.toFixed(2)} / ${limite.toFixed(2)} $</span>
+                    <button onclick="eliminarPresupuesto('${p.id}')" class="p-2 rounded-lg hover:bg-gray-100 text-sm" title="Delete budget">🗑️</button>
                 </div>
             </div>
             <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
@@ -305,7 +305,7 @@ async function cargarTransaccionesBD() {
     data.forEach((t) => {
         transaccionesPorId[t.id] = t;
         const li = document.createElement('li');
-        li.className = 'py-3 flex justify-between items-center border-b border-gray-100';
+        li.className = 'py-3 flex justify-between items-center gap-3 border-b border-gray-100';
         const esIngreso = t.tipo === 'Ingreso';
         const color = esIngreso ? 'text-green-600' : 'text-red-600';
         const signo = esIngreso ? '+' : '-';
@@ -313,14 +313,14 @@ async function cargarTransaccionesBD() {
         const fechaTransaccion = t.fecha ? new Date(t.fecha).toLocaleDateString() : '';
 
         li.innerHTML = `
-            <div>
-                <p class="font-medium text-gray-800 text-sm">${escaparHTML(t.concepto)}</p>
+            <div class="min-w-0">
+                <p class="font-medium text-gray-800 text-sm break-words">${escaparHTML(t.concepto)}</p>
                 <p class="text-xs text-gray-400">${escaparHTML(catNombre)} <span class="ml-2 text-gray-300">${fechaTransaccion}</span></p>
             </div>
-            <div class="flex items-center gap-3">
-                <span class="font-bold text-sm ${color}">${signo}${Number(t.monto).toFixed(2)} $</span>
-                <button onclick="editarTransaccion('${t.id}')" class="text-gray-400 hover:text-blue-600 text-sm" title="Edit">✏️</button>
-                <button onclick="eliminarTransaccion('${t.id}')" class="text-gray-400 hover:text-red-600 text-sm" title="Delete">🗑️</button>
+            <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+                <span class="font-bold text-sm whitespace-nowrap mr-1 ${color}">${signo}${Number(t.monto).toFixed(2)} $</span>
+                <button onclick="editarTransaccion('${t.id}')" class="p-2 rounded-lg hover:bg-gray-100 text-sm" title="Edit">✏️</button>
+                <button onclick="eliminarTransaccion('${t.id}')" class="p-2 rounded-lg hover:bg-gray-100 text-sm" title="Delete">🗑️</button>
             </div>
         `;
         lista.appendChild(li);
