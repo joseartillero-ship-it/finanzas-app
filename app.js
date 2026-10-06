@@ -144,6 +144,13 @@ function mesActual() {
     return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
 }
 
+// The date field starts with today's date (reset() also goes back to it)
+const campoFecha = document.getElementById('fecha-transaccion');
+if (campoFecha) {
+    const hoy = new Date();
+    campoFecha.defaultValue = `${mesActual()}-${String(hoy.getDate()).padStart(2, '0')}`;
+}
+
 // Month filter: if a month is selected ("YYYY-MM"), keep only transactions dated in that month
 function filtrarPorMes(query) {
     const mes = document.getElementById('filtro-mes')?.value;

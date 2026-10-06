@@ -16,6 +16,16 @@
         @media (max-width: 640px) {
             input, select { font-size: 16px !important; }
         }
+        /* iPhone draws empty date/month inputs as a wide grey box; use our own styling instead */
+        input[type="date"], input[type="month"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #fff;
+            min-width: 0;
+            min-height: 2.75rem;
+        }
+        input[type="date"]::-webkit-date-and-time-value,
+        input[type="month"]::-webkit-date-and-time-value { text-align: left; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
@@ -144,6 +154,7 @@
             <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
                 <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider">Transaction History</h3>
                 <div class="flex flex-wrap items-center gap-2">
+                    <label for="filtro-mes" class="text-sm text-gray-500">Month</label>
                     <input type="month" id="filtro-mes" title="Filter by month"
                         class="border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     <button type="button" id="btn-todos-meses"
