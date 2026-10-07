@@ -49,6 +49,29 @@
         </div>
     </header>
 
+    <!-- Register Panel (opened with the Register button) -->
+    <section id="panel-registro" class="hidden max-w-md mx-auto mt-6 px-4">
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-1">Create Account</h3>
+            <p class="text-sm text-gray-500 mb-4">We'll send you an email to confirm your address.</p>
+            <form id="form-registro" class="space-y-3">
+                <input type="email" id="registro-email" placeholder="Email" required autocomplete="email"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <input type="password" id="registro-password" placeholder="Password (at least 6 characters)" required minlength="6" autocomplete="new-password"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <input type="password" id="registro-password2" placeholder="Repeat password" required minlength="6" autocomplete="new-password"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <p id="registro-mensaje" class="hidden text-sm rounded-xl px-4 py-3"></p>
+                <button type="submit" class="w-full bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg">
+                    Create Account
+                </button>
+                <button type="button" id="btn-cerrar-registro" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                    Cancel
+                </button>
+            </form>
+        </div>
+    </section>
+
     <!-- Main Content -->
 <main class="max-w-6xl mx-auto mt-6 sm:mt-10 px-4 pb-10 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
 
@@ -127,7 +150,7 @@
             <div class="relative w-full h-80 flex items-center justify-center">
                 <canvas id="graficogastos"></canvas>
                 <p id="grafico-vacio" class="hidden absolute inset-0 flex items-center justify-center text-center text-sm text-gray-400 px-6">
-                    No expenses to show yet. Sign in and add expenses with a category to see the chart.
+                    No expenses to show yet. Add expenses with a category to see the chart.
                 </p>
             </div>
         </div>

@@ -15,6 +15,7 @@ async function actualizarUI() {
         if (userEmail) userEmail.textContent = `Active session: ${session.user.email}`;
         if (authForms) authForms.classList.add('hidden');
         if (btnLogout) btnLogout.classList.remove('hidden');
+        document.getElementById('panel-registro')?.classList.add('hidden');
     } else {
         if (userEmail) userEmail.textContent = 'Sign in or register to save your data';
         if (authForms) authForms.classList.remove('hidden');
@@ -22,25 +23,80 @@ async function actualizarUI() {
     }
 }
 
+// Page the confirmation email link sends the user back to (this same page)
+const URL_CONFIRMACION = window.location.origin + window.location.pathname;
+
 // Login / Signup Events
 document.getElementById('btn-login')?.addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) alert('Error signing in: ' + error.message);
-    else {
+
+    if (error && error.code === 'email_not_confirmed') {
+        // Account exists but the confirmation link was never clicked
+        if (confirm('Your email is not confirmed yet. Check your inbox (and spam folder).\n\nDo you want us to send the confirmation email again?')) {
+            const { error: errorReenvio } = await supabaseClient.auth.resend({
+                type: 'signup',
+                email,
+                options: { emailRedirectTo: URL_CONFIRMACION }
+            });
+            alert(errorReenvio ? 'Could not resend the email: ' + errorReenvio.message : 'Confirmation email sent to ' + email);
+        }
+    } else if (error) {
+        alert('Error signing in: ' + error.message);
+    } else {
         actualizarUI();
         cargarCategorias();
         refrescarDatosFiltrados();
     }
 });
 
-document.getElementById('btn-signup')?.addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const { error } = await supabaseClient.auth.signUp({ email, password });
-    if (error) alert('Error registering: ' + error.message);
-    else alert('Registration complete! If confirmation is required, please check your email.');
+// Register: open and close the "Create Account" panel
+function mostrarMensajeRegistro(texto, esError) {
+    const mensaje = document.getElementById('registro-mensaje');
+    mensaje.textContent = texto;
+    mensaje.className = `text-sm rounded-xl px-4 py-3 ${esError ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`;
+}
+
+document.getElementById('btn-signup')?.addEventListener('click', () => {
+    const panel = document.getElementById('panel-registro');
+    panel.classList.remove('hidden');
+    document.getElementById('registro-mensaje').classList.add('hidden');
+    document.getElementById('registro-email').value = document.getElementById('email').value.trim();
+    panel.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('registro-email').focus();
+});
+
+document.getElementById('btn-cerrar-registro')?.addEventListener('click', () => {
+    document.getElementById('form-registro').reset();
+    document.getElementById('panel-registro').classList.add('hidden');
+});
+
+// Register: create the account and send the confirmation email
+document.getElementById('form-registro')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('registro-email').value.trim();
+    const password = document.getElementById('registro-password').value;
+    const password2 = document.getElementById('registro-password2').value;
+
+    if (password !== password2) return mostrarMensajeRegistro('The passwords do not match.', true);
+
+    const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: URL_CONFIRMACION }
+    });
+
+    if (error) return mostrarMensajeRegistro('Error creating the account: ' + error.message, true);
+
+    // If email confirmation is turned off in Supabase, the user is signed in straight away
+    if (data.session) {
+        e.target.reset();
+        return actualizarUI();
+    }
+
+    e.target.reset();
+    mostrarMensajeRegistro(`Almost done! We've sent an email to ${email}. Click the link inside to activate your account, then sign in. Check your spam folder if you don't see it.`, false);
 });
 
 document.getElementById('btn-logout')?.addEventListener('click', async () => {
