@@ -1,0 +1,13 @@
+{
+  "name": "finanzas-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal finance manager with Supabase and Chart.js",
+  "scripts": {
+    "css:build": "tailwindcss -i ./src/input.css -o ./tailwind.css --minify",
+    "css:watch": "tailwindcss -i ./src/input.css -o ./tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}

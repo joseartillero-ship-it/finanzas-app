@@ -8,7 +8,7 @@ A minimalist web app for tracking personal finances in real time. Users can log 
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** HTML5, Tailwind CSS, vanilla JavaScript (ES6+)
+- **Frontend:** HTML5, Tailwind CSS (built with the Tailwind CLI via npm), vanilla JavaScript (ES6+)
 - **Backend & Database:** [Supabase](https://supabase.com) (PostgreSQL + Auth)
 - **Data Visualization:** [Chart.js](https://www.chartjs.org)
 - **Deployment:** [Vercel](https://vercel.com), with continuous deployment from GitHub
@@ -43,14 +43,24 @@ A minimalist web app for tracking personal finances in real time. Users can log 
    git clone https://github.com/joseartillero-ship-it/finanzas-app.git
    ```
 2. Open the folder in VS Code.
-3. Set your own Supabase project URL and publishable key at the top of `app.js`.
-4. Start a local server (for example, the **Live Server** extension) and open `index.html`.
+3. Install the dependencies and build the CSS (requires [Node.js](https://nodejs.org)):
+   ```bash
+   npm install
+   npm run css:build
+   ```
+   While editing, `npm run css:watch` rebuilds `tailwind.css` every time you save.
+4. Set your own Supabase project URL and publishable key at the top of `app.js`.
+5. Start a local server (for example, the **Live Server** extension) and open `index.html`.
 
 ## 📁 Project Structure
 
 ```
 finanzas-app/
-├── index.html   # Page layout and forms
-├── app.js       # Supabase client, data loading, forms and chart
+├── index.html          # Page layout and forms
+├── app.js              # Supabase client, data loading, forms and chart
+├── src/input.css       # Tailwind source file
+├── tailwind.css        # Generated CSS (npm run css:build), loaded by index.html
+├── tailwind.config.js  # Files Tailwind scans for classes
+├── package.json        # npm scripts and dependencies
 └── README.md
 ```
