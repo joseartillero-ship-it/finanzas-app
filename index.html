@@ -43,6 +43,7 @@
                 <input type="password" id="password" placeholder="Password" class="flex-1 min-w-0 sm:flex-none border rounded px-2 py-1 text-sm">
                 <button id="btn-login" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium">Sign In</button>
                 <button id="btn-signup" class="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1 rounded text-sm font-medium">Register</button>
+                <button type="button" id="btn-olvide" class="text-sm text-blue-600 hover:underline">Forgot password?</button>
             </div>
 
             <button id="btn-logout" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium hidden">Sign Out</button>
@@ -67,6 +68,43 @@
                 </button>
                 <button type="button" id="btn-cerrar-registro" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-semibold transition-all">
                     Cancel
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Forgot Password Panel: asks for the email to send the reset link to -->
+    <section id="panel-recuperar" class="hidden max-w-md mx-auto mt-6 px-4">
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-1">Reset Password</h3>
+            <p class="text-sm text-gray-500 mb-4">Enter your email and we'll send you a link to choose a new password.</p>
+            <form id="form-recuperar" class="space-y-3">
+                <input type="email" id="recuperar-email" placeholder="Email" required autocomplete="email"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <p id="recuperar-mensaje" class="hidden text-sm rounded-xl px-4 py-3"></p>
+                <button type="submit" class="w-full bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg">
+                    Send Reset Link
+                </button>
+                <button type="button" id="btn-cerrar-recuperar" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-semibold transition-all">
+                    Cancel
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- New Password Panel: shown after opening the reset link from the email -->
+    <section id="panel-nueva-password" class="hidden max-w-md mx-auto mt-6 px-4">
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
+            <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-1">Set New Password</h3>
+            <p class="text-sm text-gray-500 mb-4">Choose a new password for your account.</p>
+            <form id="form-nueva-password" class="space-y-3">
+                <input type="password" id="nueva-password" placeholder="New password (at least 6 characters)" required minlength="6" autocomplete="new-password"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <input type="password" id="nueva-password2" placeholder="Repeat new password" required minlength="6" autocomplete="new-password"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all">
+                <p id="nueva-password-mensaje" class="hidden text-sm rounded-xl px-4 py-3"></p>
+                <button type="submit" class="w-full bg-gray-900 hover:bg-black text-white py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg">
+                    Save New Password
                 </button>
             </form>
         </div>

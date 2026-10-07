@@ -16,6 +16,7 @@ async function actualizarUI() {
         if (authForms) authForms.classList.add('hidden');
         if (btnLogout) btnLogout.classList.remove('hidden');
         document.getElementById('panel-registro')?.classList.add('hidden');
+        document.getElementById('panel-recuperar')?.classList.add('hidden');
     } else {
         if (userEmail) userEmail.textContent = 'Sign in or register to save your data';
         if (authForms) authForms.classList.remove('hidden');
@@ -51,12 +52,14 @@ document.getElementById('btn-login')?.addEventListener('click', async () => {
     }
 });
 
-// Register: open and close the "Create Account" panel
-function mostrarMensajeRegistro(texto, esError) {
-    const mensaje = document.getElementById('registro-mensaje');
+// Show a green (success) or red (error) message inside one of the account panels
+function mostrarMensaje(idMensaje, texto, esError) {
+    const mensaje = document.getElementById(idMensaje);
     mensaje.textContent = texto;
     mensaje.className = `text-sm rounded-xl px-4 py-3 ${esError ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`;
 }
+
+// Register: open and close the "Create Account" panel
 
 document.getElementById('btn-signup')?.addEventListener('click', () => {
     const panel = document.getElementById('panel-registro');
@@ -79,7 +82,7 @@ document.getElementById('form-registro')?.addEventListener('submit', async (e) =
     const password = document.getElementById('registro-password').value;
     const password2 = document.getElementById('registro-password2').value;
 
-    if (password !== password2) return mostrarMensajeRegistro('The passwords do not match.', true);
+    if (password !== password2) return mostrarMensaje('registro-mensaje', 'The passwords do not match.', true);
 
     const { data, error } = await supabaseClient.auth.signUp({
         email,
@@ -87,7 +90,7 @@ document.getElementById('form-registro')?.addEventListener('submit', async (e) =
         options: { emailRedirectTo: URL_CONFIRMACION }
     });
 
-    if (error) return mostrarMensajeRegistro('Error creating the account: ' + error.message, true);
+    if (error) return mostrarMensaje('registro-mensaje', 'Error creating the account: ' + error.message, true);
 
     // If email confirmation is turned off in Supabase, the user is signed in straight away
     if (data.session) {
@@ -96,7 +99,50 @@ document.getElementById('form-registro')?.addEventListener('submit', async (e) =
     }
 
     e.target.reset();
-    mostrarMensajeRegistro(`Almost done! We've sent an email to ${email}. Click the link inside to activate your account, then sign in. Check your spam folder if you don't see it.`, false);
+    mostrarMensaje('registro-mensaje', `Almost done! We've sent an email to ${email}. Click the link inside to activate your account, then sign in. Check your spam folder if you don't see it.`, false);
+});
+
+// Forgot password: open and close the "Reset Password" panel
+document.getElementById('btn-olvide')?.addEventListener('click', () => {
+    const panel = document.getElementById('panel-recuperar');
+    panel.classList.remove('hidden');
+    document.getElementById('recuperar-mensaje').classList.add('hidden');
+    document.getElementById('recuperar-email').value = document.getElementById('email').value.trim();
+    panel.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('recuperar-email').focus();
+});
+
+document.getElementById('btn-cerrar-recuperar')?.addEventListener('click', () => {
+    document.getElementById('form-recuperar').reset();
+    document.getElementById('panel-recuperar').classList.add('hidden');
+});
+
+// Forgot password, step 1: email a link to choose a new password
+document.getElementById('form-recuperar')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('recuperar-email').value.trim();
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: URL_CONFIRMACION });
+    if (error) return mostrarMensaje('recuperar-mensaje', 'Could not send the email: ' + error.message, true);
+
+    // Same message whether or not the account exists, so nobody can check which emails are registered
+    mostrarMensaje('recuperar-mensaje', `If there is an account for ${email}, we've sent it a link to reset the password. Check your spam folder if you don't see it.`, false);
+});
+
+// Forgot password, step 2: the email link opens the app; save the new password
+document.getElementById('form-nueva-password')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const password = document.getElementById('nueva-password').value;
+    const password2 = document.getElementById('nueva-password2').value;
+
+    if (password !== password2) return mostrarMensaje('nueva-password-mensaje', 'The passwords do not match.', true);
+
+    const { error } = await supabaseClient.auth.updateUser({ password });
+    if (error) return mostrarMensaje('nueva-password-mensaje', 'Could not change the password: ' + error.message, true);
+
+    e.target.reset();
+    document.getElementById('panel-nueva-password').classList.add('hidden');
+    alert('Your password has been changed. You are now signed in.');
 });
 
 document.getElementById('btn-logout')?.addEventListener('click', async () => {
@@ -537,7 +583,15 @@ async function actualizarTotalesBD() {
 }
 
 // Listen to Auth State Changes
-supabaseClient.auth.onAuthStateChange(() => {
+supabaseClient.auth.onAuthStateChange((evento) => {
+    // The user opened the "reset password" link from the email: ask for the new password
+    if (evento === 'PASSWORD_RECOVERY') {
+        document.getElementById('panel-recuperar')?.classList.add('hidden');
+        const panel = document.getElementById('panel-nueva-password');
+        panel?.classList.remove('hidden');
+        panel?.scrollIntoView({ behavior: 'smooth' });
+    }
+
     actualizarUI();
     cargarCategorias();
     refrescarDatosFiltrados();

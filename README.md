@@ -16,6 +16,7 @@ A minimalist web app for tracking personal finances in real time. Users can log 
 ## ✨ Features
 
 - **Authentication:** sign up with email confirmation (a verification link is emailed before the account can be used), sign in and sign out with Supabase Auth.
+- **Password reset:** "Forgot password?" emails a link to choose a new password.
 - **Transactions:** record income and expenses with a concept, amount, date and optional category.
 - **Custom categories:** create and delete your own categories to classify transactions.
 - **Live financial summary:** total income, total expenses and net balance, updated after every change.
