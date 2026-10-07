@@ -51,6 +51,5 @@ A minimalist web app for tracking personal finances in real time. Users can log 
 finanzas-app/
 ├── index.html   # Page layout and forms
 ├── app.js       # Supabase client, data loading, forms and chart
-├── style.css    # Custom styles
 └── README.md
 ```
