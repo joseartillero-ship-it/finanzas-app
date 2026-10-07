@@ -544,6 +544,11 @@ async function renderizarGraficoGastos() {
     const chartInstance = Chart.getChart(canvas);
     if (chartInstance) chartInstance.destroy();
 
+    // No expenses: show a message instead of an empty white box
+    const mensajeVacio = document.getElementById('grafico-vacio');
+    if (mensajeVacio) mensajeVacio.classList.toggle('hidden', data.length > 0);
+    if (data.length === 0) return;
+
     const ctx = canvas.getContext('2d');
 
     new Chart(ctx, {

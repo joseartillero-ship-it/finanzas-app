@@ -126,6 +126,9 @@
             <h3 class="text-base font-bold text-gray-800 uppercase tracking-wider mb-4">Expenses by Category</h3>
             <div class="relative w-full h-80 flex items-center justify-center">
                 <canvas id="graficogastos"></canvas>
+                <p id="grafico-vacio" class="hidden absolute inset-0 flex items-center justify-center text-center text-sm text-gray-400 px-6">
+                    No expenses to show yet. Sign in and add expenses with a category to see the chart.
+                </p>
             </div>
         </div>
 
@@ -156,7 +159,7 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <label for="filtro-mes" class="text-sm text-gray-500">Month</label>
                     <input type="month" id="filtro-mes" title="Filter by month"
-                        class="border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        class="w-44 border border-gray-200 rounded-xl px-3 py-1.5 text-sm text-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     <button type="button" id="btn-todos-meses"
                         class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all">
                         All
