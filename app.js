@@ -264,6 +264,7 @@ function filtrarPorMes(query) {
 
 // Reload everything that depends on the transactions or the month filter
 function refrescarDatosFiltrados() {
+    renderizarGraficoMensual(); 
     cargarTransaccionesBD();
     actualizarTotalesBD();
     renderizarGraficoGastos();
@@ -681,3 +682,50 @@ async function renderizarGraficoGastos() {
         }
     });
 }
+
+// Render Monthly Evolution Chart (income vs expenses per month)
+async function renderizarGraficoMensual() {
+    const { data, error } = await supabaseClient.from('resumen_mensual').select('*');
+    if (error) {
+        console.error('Error loading monthly chart:', error);
+        return;
+    }
+
+    // Part 2: Chart.js wants separate lists (one for the labels, one per group of bars)
+    const meses = data.map(d => {
+        const [anio, mes] = d.mes.split('-').map(Number);
+        return new Date(anio, mes - 1, 1).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+    });
+    const ingresos = data.map(d => Number(d.ingresos));
+    const gastos = data.map(d => Number(d.gastos));
+
+    // Part 3: remove the previous chart before drawing a new one
+    const canvas = document.getElementById('grafico-mensual');
+    if (!canvas) return;
+    const graficoAnterior = Chart.getChart(canvas);
+    if (graficoAnterior) graficoAnterior.destroy();
+
+    // Part 4: draw two groups of bars per month (income in green, expenses in red)
+    new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: meses,
+            datasets: [
+                { label: 'Income', data: ingresos, backgroundColor: '#10B981' },
+                { label: 'Expenses', data: gastos, backgroundColor: '#EF4444' }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            },
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+
